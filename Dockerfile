@@ -84,6 +84,7 @@ RUN pip3 install tensorflow==1.12.0
 RUN pip3 install tensorflow-gpu==1.12.0
 RUN pip3 install pybullet==1.9.5
 RUN apt-get install -y python3-tk
+RUN pip3 install stable-baselines
 
 WORKDIR /root/
 RUN git clone https://github.com/openai/baselines.git && \
