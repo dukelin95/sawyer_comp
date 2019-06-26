@@ -3,10 +3,11 @@ services:
   master:
     image: sawyer_train:latest
     environment: 
-      - "DISPLAY=unix:0"
+      - "DISPLAY=$DISPLAY"
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ./mjkey/mjkey.txt:/root/.mujoco/mjkey.txt
-      - /code/:/root/code/
+      - ./code/:/root/code/
+      - ./robosuite/:/root/robosuite/
     tty: true
     stdin_open: true
