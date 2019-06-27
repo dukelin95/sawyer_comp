@@ -118,7 +118,7 @@ class SawyerPrimitiveReach(SawyerEnv):
         else:
             if self.prim_axis == 'x':
                 self.placement_initializer = UniformRandomSampler(
-                    x_range=[-0.03, 0.03],
+                    x_range=[-0.3, 0.3],
                     y_range=[0, 0],
                     ensure_object_boundary_in_range=False,
                     z_rotation=True,
@@ -126,7 +126,7 @@ class SawyerPrimitiveReach(SawyerEnv):
             elif self.prim_axis == 'y':
                 self.placement_initializer = UniformRandomSampler(
                     x_range=[0, 0],
-                    y_range=[-0.03, 0.03],
+                    y_range=[-0.3, 0.3],
                     ensure_object_boundary_in_range=False,
                     z_rotation=True,
                 )

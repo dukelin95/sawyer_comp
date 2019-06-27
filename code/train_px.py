@@ -14,7 +14,7 @@ from stable_baselines import DDPG
 env = GymWrapper(
         suite.make(
             "SawyerStack",
-            has_renderer=True,
+#            has_renderer=True,
             ignore_done=True,
             has_offscreen_renderer=False,
       	    use_camera_obs=False,
@@ -28,7 +28,7 @@ n_actions = env.action_space.shape[-1]
 param_noise = None
 action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=float(0.5) * np.ones(n_actions))
 
-model = DDPG(MlpPolicy, env, verbose=2, param_noise=param_noise, action_noise=action_noise)
+model = DDPG(MlpPolicy, env, verbose=2, param_noise=param_noise, action_noise=action_noise, render=True)
 model.learn(total_timesteps=1000)
 #model.save("ddpg_mountain")
 
@@ -43,6 +43,6 @@ while i != 1000:
     i = i + 1
     action, _states = model.predict(obs)
     obs, rewards, dones, info = env.step(action)
-    env.render()
+#    env.render()
 
 print("====={0}=====".format(i))
