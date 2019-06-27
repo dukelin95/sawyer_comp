@@ -11,5 +11,10 @@ services:
       - ./mjkey/mjkey.txt:/root/.mujoco/mjkey.txt
       - ./code/:/root/code/
       - ./robosuite/:/root/robosuite/
+      - ./stable-baselines/:/root/stable-baselines/
+    command: bash -c "cd stable-baselines 
+                      && pip3 install --no-dependencies -e . 
+                      && cd ../code 
+                      && bash"
     tty: true
     stdin_open: true
