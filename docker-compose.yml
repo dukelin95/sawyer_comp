@@ -2,8 +2,10 @@ version: '2.3'
 services:
   master:
     image: sawyer_train:latest
+    runtime: nvidia
     environment: 
       - "DISPLAY=$DISPLAY"
+      - "CUDA_VISIBLE_DEVICES=3"
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ./mjkey/mjkey.txt:/root/.mujoco/mjkey.txt
