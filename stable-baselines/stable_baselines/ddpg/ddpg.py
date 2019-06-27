@@ -847,8 +847,8 @@ class DDPG(OffPolicyRLModel):
                 epoch_episodes = 0
                 epoch = 0
                 while True:
-                    for _ in range(log_interval):
-                        print(epoch, end=' ')
+                    for countz in range(log_interval):
+                        print(countz, end=' ')
                         # Perform rollouts.
                         for _ in range(self.nb_rollout_steps):
                             if total_steps >= total_timesteps:
