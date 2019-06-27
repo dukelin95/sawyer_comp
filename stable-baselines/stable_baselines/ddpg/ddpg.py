@@ -882,7 +882,7 @@ class DDPG(OffPolicyRLModel):
                 while True:
                     for _ in trange(log_interval):
                         # Perform rollouts.
-                        for _ in trange(self.nb_rollout_steps):
+                        for _ in range(self.nb_rollout_steps):
                             if total_steps >= total_timesteps:
                                 return self
 
