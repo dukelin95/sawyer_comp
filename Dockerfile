@@ -94,7 +94,7 @@ RUN pip3 install gym
 RUN pip3 install --upgrade pip
 RUN pip3 install atari-py==0.1.14 
 RUN pip3 install --no-dependencies stable-baselines 
-RUN pip3 install pandas dill seaborn mpi4py zmq glob2 matplotlib pytz setuptools future
+RUN pip3 install pandas dill seaborn mpi4py zmq glob2 matplotlib pytz setuptools future tqdm
 #RUN git clone https://github.com/hill-a/stable-baselines.git && \
 #  cd stable-baselines && \
 #  pip3 install -e .
