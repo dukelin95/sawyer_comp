@@ -198,6 +198,7 @@ class DDPG(OffPolicyRLModel):
                                    verbose=verbose, policy_base=DDPGPolicy,
                                    requires_vec_env=False, policy_kwargs=policy_kwargs)
 
+        print("===START===")
         # Parameters.
         self.gamma = gamma
         self.tau = tau
@@ -847,6 +848,7 @@ class DDPG(OffPolicyRLModel):
                 epoch = 0
                 while True:
                     for _ in range(log_interval):
+                        print(epoch, end=' ')
                         # Perform rollouts.
                         for _ in range(self.nb_rollout_steps):
                             if total_steps >= total_timesteps:
