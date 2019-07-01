@@ -21,6 +21,7 @@ from stable_baselines.a2c.utils import total_episode_reward_logger
 from stable_baselines.deepq.replay_buffer import ReplayBuffer
 
 from tqdm import trange
+logger.Logger("./log", [logger.make_output_format("log", "./log", "test")])
 
 def normalize(tensor, stats):
     """
