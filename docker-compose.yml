@@ -14,7 +14,6 @@ services:
       - ./stable-baselines/:/root/stable-baselines/
     command: bash -c "cd stable-baselines 
                       && pip3 install --no-dependencies -e . 
-                      && cd ../code 
-                      && bash"
+                      && cd ../code && bash" 
     tty: true
     stdin_open: true

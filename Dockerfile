@@ -1,5 +1,5 @@
-# FROM rlplayground/cuda9_cudnn7:latest
-FROM arclab/vnc:cuda9.2-xenial
+FROM rlplayground/cuda9_cudnn7:latest
+
 WORKDIR /.
 
 # FOR Mujoco

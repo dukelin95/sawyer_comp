@@ -929,6 +929,7 @@ class DDPG(OffPolicyRLModel):
 
                             if done:
                                 # Episode done.
+                                print("Eps done")
                                 epoch_episode_rewards.append(episode_reward)
                                 episode_rewards_history.append(episode_reward)
                                 epoch_episode_steps.append(episode_step)
@@ -1000,11 +1001,11 @@ class DDPG(OffPolicyRLModel):
                     duration = time.time() - start_time
                     stats = self._get_stats()
                     combined_stats = stats.copy()
-                    # combined_stats['rollout/return'] = np.mean(epoch_episode_rewards)
-                    # combined_stats['rollout/return_history'] = np.mean(episode_rewards_history)
-                    # combined_stats['rollout/episode_steps'] = np.mean(epoch_episode_steps)
-                    # combined_stats['rollout/actions_mean'] = np.mean(epoch_actions)
-                    # combined_stats['rollout/Q_mean'] = np.mean(epoch_qs)
+                    combined_stats['rollout/return'] = np.mean(epoch_episode_rewards)
+                    combined_stats['rollout/return_history'] = np.mean(episode_rewards_history)
+                    combined_stats['rollout/episode_steps'] = np.mean(epoch_episode_steps)
+                    combined_stats['rollout/actions_mean'] = np.mean(epoch_actions)
+                    combined_stats['rollout/Q_mean'] = np.mean(epoch_qs)
                     combined_stats['train/loss_actor'] = np.mean(epoch_actor_losses)
                     combined_stats['train/loss_critic'] = np.mean(epoch_critic_losses)
                     if len(epoch_adaptive_distances) != 0:

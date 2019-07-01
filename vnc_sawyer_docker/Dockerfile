@@ -1,5 +1,4 @@
-FROM rlplayground/cuda9_cudnn7:latest
-
+FROM arclab/vnc:cuda9.0-cudnn7
 WORKDIR /.
 
 # FOR Mujoco
@@ -77,8 +76,9 @@ ENV NVIDIA_DRIVER_CAPABILITIES \
 
 RUN apt-get update && apt-get install mesa-utils
 
-ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so:/usr/lib/x86_64-linux-gnu/libGLEW.so
 
+ENV HOME=/root
 RUN pip3 install robosuite
 RUN pip3 install tensorflow==1.12.0
 RUN pip3 install tensorflow-gpu==1.12.0
