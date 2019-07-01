@@ -12,5 +12,4 @@ docker run \
        --env CUDA_VISIBLE_DEVICES=3 \
        --env DISPLAY=$DISPLAY \
        --runtime nvidia \
-       vnc_sawyer
-# dorowu/ubuntu-desktop-lxde-vnc
+       vnc_sawyer 

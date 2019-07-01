@@ -76,7 +76,7 @@ ENV NVIDIA_DRIVER_CAPABILITIES \
 
 RUN apt-get update && apt-get install mesa-utils
 
-ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so:/usr/lib/x86_64-linux-gnu/libGLEW.so
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so:/usr/lib/x86_64-linux-gnu/libGL.so
 
 ENV HOME=/root
 RUN pip3 install robosuite

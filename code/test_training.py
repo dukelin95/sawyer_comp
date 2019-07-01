@@ -33,18 +33,18 @@ action_noise = None
 #model = DDPG('MlpPolicy', env, verbose=1, param_noise=param_noise, action_noise=action_noise)
 
 model = DDPG('MlpPolicy', env, verbose=1, param_noise=param_noise, action_noise=action_noise)
-model.learn(total_timesteps=1000)
-#model.save("ddpg_test")
+model.learn(total_timesteps=50000)
+model.save("ddpg_test_50k")
 #del model # remove to demonstrate saving and loading
 
 #model = DDPG.load("ddpg_mountain")
 
-for u in range(100):
-  i = 0
-  obs = env.reset()
-  while i != 1000:
-    i = i + 1
-    action, _states = model.predict(obs)
-    obs, rewards, dones, info = env.step(action)
-    env.render()
+#for u in range(100):
+#  i = 0
+#  obs = env.reset()
+#  while i != 1000:
+#    i = i + 1
+#    action, _states = model.predict(obs)
+#    obs, rewards, dones, info = env.step(action)
+#    env.render()
 

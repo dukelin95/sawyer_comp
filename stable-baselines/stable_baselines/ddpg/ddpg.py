@@ -1042,7 +1042,8 @@ class DDPG(OffPolicyRLModel):
                     combined_stats = {k: v / mpi_size for (k, v) in zip(combined_stats.keys(), combined_stats_sums)}
 
                     # Total statistics.
-                    combined_stats['total/epochs'] = epoch + 1
+                    epoch = epoch + 1
+                    combined_stats['total/epochs'] = epoch
                     combined_stats['total/steps'] = step
 
                     for key in sorted(combined_stats.keys()):
