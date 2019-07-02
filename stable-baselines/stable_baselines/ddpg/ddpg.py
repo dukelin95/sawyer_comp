@@ -22,12 +22,6 @@ from stable_baselines.deepq.replay_buffer import ReplayBuffer
 
 from tqdm import trange
 import time
-import sys
-suff = str(time.strftime("_%d_%b_%Y_%H_%M_%S", time.gmtime()))
-logger.Logger.CURRENT = logger.Logger("./log", [
-	logger.make_output_format("log", "./log", suff), 
-	logger.make_output_format("csv", "./log", suff),
-	logger.make_output_format("stdout", "./log")])
 
 def normalize(tensor, stats):
     """
@@ -233,6 +227,11 @@ class DDPG(OffPolicyRLModel):
                                    requires_vec_env=False, policy_kwargs=policy_kwargs)
 
         print("===START===")
+        suff = str(time.strftime("_%d_%b_%Y_%H_%M_%S", time.gmtime()))
+        logger.Logger.CURRENT = logger.Logger("./log", [
+            logger.make_output_format("csv", "./log", suff),
+            logger.make_output_format("stdout", "./log")])
+
         # Parameters.
         self.gamma = gamma
         self.tau = tau

@@ -9,10 +9,6 @@ from stable_baselines import DDPG
 
 from sawyer_primitive_reach import SawyerPrimitiveReach
 
-# use robosuite's gym_wrapper to wrap the sawyer stack env for baselines
-
-# no object observation for PX,PY,PZ
-# TODO turn on for pick policy?
 env = GymWrapper(
         SawyerPrimitiveReach(
             prim_axis='x',
@@ -26,15 +22,14 @@ env = GymWrapper(
     )
 
 
-
-model = DDPG.load("ddpg_test_x_batch1024.pkl")
+model = DDPG.load("log/ddpg_test")
 
 for u in range(1):
   i = 0
   obs = env.reset()
-#  while i != 1000:
-  done = False
-  while not done:
+  while i != 1000:
+#   done = False
+#   while not done:
     i = i + 1
     action, _states = model.predict(obs)
     obs, rewards, done, info = env.step(action)
