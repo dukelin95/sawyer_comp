@@ -21,7 +21,13 @@ from stable_baselines.a2c.utils import total_episode_reward_logger
 from stable_baselines.deepq.replay_buffer import ReplayBuffer
 
 from tqdm import trange
-logger.Logger("./log", [logger.make_output_format("log", "./log", "test")])
+import time
+import sys
+suff = str(time.strftime("_%d_%b_%Y_%H_%M_%S", time.gmtime()))
+logger.Logger.CURRENT = logger.Logger("./log", [
+	logger.make_output_format("log", "./log", suff), 
+	logger.make_output_format("csv", "./log", suff),
+	logger.make_output_format("stdout", "./log")])
 
 def normalize(tensor, stats):
     """
