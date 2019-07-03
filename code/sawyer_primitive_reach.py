@@ -233,21 +233,21 @@ class SawyerPrimitiveReach(SawyerEnv):
         Returns:
             reward (float): the reward
         """
-        reward = 0.
+        reward = -1.
 
         # sparse completion reward
         if self._check_success():
-            reward = 1.0
+            reward = 0.
 
         # use a shaping reward
-        if self.reward_shaping:
+        #if self.reward_shaping:
 
             # reaching reward
-            cube_pos = self.sim.data.body_xpos[self.cube_body_id]
-            gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-            dist = np.linalg.norm(gripper_site_pos - cube_pos)
-            reaching_reward = 1 - np.tanh(10.0 * dist)
-            reward += reaching_reward
+         #   cube_pos = self.sim.data.body_xpos[self.cube_body_id]
+         #   gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+         #   dist = np.linalg.norm(gripper_site_pos - cube_pos)
+         #   reaching_reward = 1 - np.tanh(10.0 * dist)
+         #   reward += reaching_reward
 
 
         return reward

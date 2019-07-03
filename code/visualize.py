@@ -8,29 +8,31 @@ from stable_baselines.ddpg.noise import OrnsteinUhlenbeckActionNoise
 from stable_baselines import DDPG
 
 from sawyer_primitive_reach import SawyerPrimitiveReach
+import argparse
+
+parser = argparse.ArgumentParser(description='Select pkl file to visualize')
+parser.add_argument('path', metavar='path', type=str)
+args = parser.parse_args()
 
 env = GymWrapper(
         SawyerPrimitiveReach(
             prim_axis='x',
             has_renderer=True,
-            ignore_done=True,
             has_offscreen_renderer=False,
       	    use_camera_obs=False,
             use_object_obs=True,
+            horizon = 500,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
     )
 
+path = args.path
+model = DDPG.load(path)
 
-model = DDPG.load("log/ddpg_test")
-
-for u in range(1):
-  i = 0
+for u in range(5):
   obs = env.reset()
-  while i != 1000:
-#   done = False
-#   while not done:
-    i = i + 1
+  done = False
+  while not done:
     action, _states = model.predict(obs)
     obs, rewards, done, info = env.step(action)
     env.render()

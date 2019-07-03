@@ -220,16 +220,17 @@ class DDPG(OffPolicyRLModel):
                  tensorboard_log=None,
                  _init_setup_model=True,
                  policy_kwargs=None,
-                 full_tensorboard_log=False):
+                 full_tensorboard_log=False,
+		 logging=None):
 
         super(DDPG, self).__init__(policy=policy, env=env, replay_buffer=None,
                                    verbose=verbose, policy_base=DDPGPolicy,
                                    requires_vec_env=False, policy_kwargs=policy_kwargs)
 
         print("===START===")
-        suff = str(time.strftime("_%d_%b_%Y_%H_%M_%S", time.gmtime()))
-        logger.Logger.CURRENT = logger.Logger("./log", [
-            logger.make_output_format("csv", "./log", suff),
+        if logging: logger.Logger.CURRENT = logger.Logger("./log", [
+            logger.make_output_format("csv", "./log", logging),
+            logger.make_output_format("log", "./log", logging),
             logger.make_output_format("stdout", "./log")])
 
         # Parameters.
@@ -935,7 +936,6 @@ class DDPG(OffPolicyRLModel):
 
                             if done:
                                 # Episode done.
-                                print("Eps done")
                                 epoch_episode_rewards.append(episode_reward)
                                 episode_rewards_history.append(episode_reward)
                                 epoch_episode_steps.append(episode_step)
