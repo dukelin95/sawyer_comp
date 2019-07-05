@@ -1,36 +1,24 @@
-import math
-import time
-import os
+from test_sawyer import SawyerPrimitiveReach
+from robosuite.wrappers.gym_wrapper import GymWrapper
+from robosuite.environments.sawyer_nut_assembly import SawyerNutAssembly
 import numpy as np
-from mujoco_py import load_model_from_xml, MjSim, MjViewer
+env = GymWrapper(
+        SawyerPrimitiveReach(
+            prim_axis='x',
+#	SawyerNutAssembly(
+            has_offscreen_renderer=False,
+            use_indicator_object=True,
+            has_renderer=True,
+      	    use_camera_obs=False,
+            use_object_obs=True,
+            horizon = 500,
+            control_freq=100,  # control should happen fast enough so that simulation looks smooth
+        )
+    )
 
-MODEL_XML = """
-<?xml version="1.0" ?>
-<mujoco>
-    <worldbody>
-        <body name="box" pos="0 0 0.2">
-            <geom size="0.15 0.15 0.15" type="box"/>
-            <joint axis="1 0 0" name="box:x" type="slide"/>
-            <joint axis="0 1 0" name="box:y" type="slide"/>
-        </body>
-        <body name="floor" pos="0 0 0.025">
-            <geom size="1.0 1.0 0.02" rgba="0 1 0 1" type="box"/>
-        </body>
-    </worldbody>
-</mujoco>
-"""
-
-model = load_model_from_xml(MODEL_XML)
-sim = MjSim(model)
-viewer = MjViewer(sim)
-step = 0
-while True:
-    t = time.time()
-    x, y = math.cos(t), math.sin(t)
-    viewer.add_marker(pos=np.array([x, y, 1]),
-                      label=str(t))
-    viewer.render()
-
-    step += 1
-    if step > 100 and os.getenv('TESTING') is not None:
-        break
+obs = env.reset()
+env.render()
+for i in range(1000):
+  action = np.random.randn(env.dof)
+  o, r, d, i = env.step(action)
+  env.render()

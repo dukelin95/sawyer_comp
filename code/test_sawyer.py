@@ -5,10 +5,11 @@ from robosuite.utils.transform_utils import convert_quat
 from robosuite.environments.sawyer import SawyerEnv
 
 from robosuite.models.arenas import TableArena
-from robosuite.models.objects import BoxObject, MujocoXMLObject
+from robosuite.models.objects import BoxObject, MujocoXMLObject, CylinderObject
 from robosuite.models.robots import Sawyer
-#from robosuite.models.tasks import TableTopTask, UniformRandomSampler
-from table_top_task import TableTopTask
+from robosuite.models.tasks import TableTopTask, UniformRandomSampler
+
+from robosuite.models.objects.xml_objects import BottleObject
 
 class SawyerPrimitiveReach(SawyerEnv):
     """
@@ -170,14 +171,17 @@ class SawyerPrimitiveReach(SawyerEnv):
         self.mujoco_arena.set_origin([0.16 + self.table_full_size[0] / 2, 0, 0])
 
         # initialize objects of interest
-        cube = BoxObject(
-            size_min=[0.020, 0.020, 0.020],  # [0.015, 0.015, 0.015],
-            size_max=[0.022, 0.022, 0.022],  # [0.018, 0.018, 0.018])F
-            rgba=[1, 0, 0, 1],
-        )
-        # cube = MujocoXMLObject("/root/robosuite/robosuite/models/assets/objects/bottle.xml")
-#        self.mujoco_objects = OrderedDict([("cube", cube)])
-	self.mujoco_objects = OrderedDict([])
+#        cube = CylinderObject(
+#            size_min=[0.020, 0.020, 0.020],  # [0.015, 0.015, 0.015],
+#            size_max=[0.022, 0.022, 0.022],  # [0.018, 0.018, 0.018])F
+#            rgba=[1, 0, 0, 1],
+#        )
+#        cube = MujocoXMLObject("/root/robosuite/robosuite/models/assets/objects/round-nut.xml")
+
+        cube = MujocoXMLObject("assets/marker.xml")
+#        cube = BottleObject()
+        self.mujoco_objects = OrderedDict([("cube", cube)])
+
         # task includes arena, robot, and objects of interest
         self.model = TableTopTask(
             self.mujoco_arena,
@@ -202,7 +206,7 @@ class SawyerPrimitiveReach(SawyerEnv):
         self.r_finger_geom_ids = [
             self.sim.model.geom_name2id(x) for x in self.gripper.right_finger_geoms
         ]
-        self.cube_geom_id = self.sim.model.geom_name2id("cube")
+        #self.cube_geom_id = self.sim.model.geom_name2id("cube")
 
     def _reset_internal(self):
         """
@@ -234,36 +238,18 @@ class SawyerPrimitiveReach(SawyerEnv):
         Returns:
             reward (float): the reward
         """
-        test = 2
-	
+        #reward = -1.0
         reward = 0.0
 
-        if test == 1:
         # reaching reward
-          cube_pos = self.sim.data.body_xpos[self.cube_body_id]
-          gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-          dist = np.linalg.norm(gripper_site_pos - cube_pos)
-          reaching_reward = 1 - np.tanh(10.0 * dist)
-          reward += reaching_reward
+        cube_pos = self.sim.data.body_xpos[self.cube_body_id]
+        gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+        dist = np.linalg.norm(gripper_site_pos - cube_pos)
+        reaching_reward = 1 - np.tanh(10.0 * dist)
+        reward += reaching_reward
         
-        if test == 2:
-          cube_pos = self.sim.data.body_xpos[self.cube_body_id]
-          gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-          dist = np.linalg.norm(gripper_site_pos - cube_pos)
-          reaching_reward = 1 - np.tanh(10.0 * dist)
-          reward += reaching_reward
-          if self._check_success():
-              reward = 10.0
-        
-        if test == 3:
-          reward = -1.0
-          if self._check_success():
-            reward = 0.0
-
-        if test == 4:
-          reward = -1.0
-          if self._check_success():
-            reward = 1.0 
+        if self._check_success():
+            reward = 10.0
 
         return reward
 
@@ -298,6 +284,7 @@ class SawyerPrimitiveReach(SawyerEnv):
         if self.use_object_obs:
             # position and rotation of object
             cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
+            cube_pos = np.array([0, 0, 0])
             cube_quat = convert_quat(
                 np.array(self.sim.data.body_xquat[self.cube_body_id]), to="xyzw"
             )

@@ -29,7 +29,7 @@ policy = 'x'
 
 nb_train_steps = 250
 nb_rollout_steps = 500
-batch_size = 64
+batch_size = 256
 critic_l2_reg = 0.01
 buffer_size=int(1e6)
 
