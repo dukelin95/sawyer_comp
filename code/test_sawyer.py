@@ -177,7 +177,7 @@ class SawyerPrimitiveReach(SawyerEnv):
             initializer=self.placement_initializer,
         )
         self.model.place_objects()
-        pos_arr, quat_arr = self.placement_initializer.sample()
+        pos_arr = np.array((0.56, np.random.uniform(-0.3,0.3), 0.8))
         self.goal = pos_arr
 
     def _get_reference(self):
@@ -203,11 +203,12 @@ class SawyerPrimitiveReach(SawyerEnv):
         super()._reset_internal()
 
         # reset positions of objects
-        pos_arr, quat_arr = self.placement_initializer.sample()
-        self.goal = pos_arr
         # TODO adding marker reset
+        pos_arr = np.array((0.56, np.random.uniform(-0.3,0.3), 0.8))
+        self.goal = pos_arr
+
         if self.has_renderer:
-            self.env.viewer.viewer.add_marker(pos=pos_arr, size=0.02,0.02,0.02, label='goal', rgba=[1, 0, 0, 1])
+            self.viewer.viewer.add_marker(pos=pos_arr, size=np.array((0.02,0.02,0.02)), label='goal', rgba=[1, 0, 0, 0.5])
         self.model.place_objects()
 
         # reset joint positions

@@ -7,8 +7,7 @@ from robosuite.environments.sawyer import SawyerEnv
 from robosuite.models.arenas import TableArena
 from robosuite.models.objects import BoxObject, MujocoXMLObject
 from robosuite.models.robots import Sawyer
-#from robosuite.models.tasks import TableTopTask, UniformRandomSampler
-from table_top_task import TableTopTask
+from robosuite.models.tasks import TableTopTask, UniformRandomSampler
 
 class SawyerPrimitiveReach(SawyerEnv):
     """
@@ -176,8 +175,7 @@ class SawyerPrimitiveReach(SawyerEnv):
             rgba=[1, 0, 0, 1],
         )
         # cube = MujocoXMLObject("/root/robosuite/robosuite/models/assets/objects/bottle.xml")
-#        self.mujoco_objects = OrderedDict([("cube", cube)])
-	self.mujoco_objects = OrderedDict([])
+        self.mujoco_objects = OrderedDict([("cube", cube)])
         # task includes arena, robot, and objects of interest
         self.model = TableTopTask(
             self.mujoco_arena,

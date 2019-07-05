@@ -19,6 +19,7 @@ env = GymWrapper(
 obs = env.reset()
 env.render()
 for i in range(1000):
+  # env.viewer.viewer.add_marker(size=np.array([0.02,0.02,0.02]),pos=np.array([0.5,0,1]), label='dest')
   action = np.random.randn(env.dof)
   o, r, d, i = env.step(action)
   env.render()
