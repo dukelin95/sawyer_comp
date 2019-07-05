@@ -5,11 +5,8 @@ from robosuite.utils.transform_utils import convert_quat
 from robosuite.environments.sawyer import SawyerEnv
 
 from robosuite.models.arenas import TableArena
-from robosuite.models.objects import BoxObject, MujocoXMLObject, CylinderObject
-from robosuite.models.robots import Sawyer
+from robosuite.models.objects import MujocoXMLObject
 from robosuite.models.tasks import TableTopTask, UniformRandomSampler
-
-from robosuite.models.objects.xml_objects import BottleObject
 
 class SawyerPrimitiveReach(SawyerEnv):
     """
@@ -170,17 +167,7 @@ class SawyerPrimitiveReach(SawyerEnv):
         # The sawyer robot has a pedestal, we want to align it with the table
         self.mujoco_arena.set_origin([0.16 + self.table_full_size[0] / 2, 0, 0])
 
-        # initialize objects of interest
-#        cube = CylinderObject(
-#            size_min=[0.020, 0.020, 0.020],  # [0.015, 0.015, 0.015],
-#            size_max=[0.022, 0.022, 0.022],  # [0.018, 0.018, 0.018])F
-#            rgba=[1, 0, 0, 1],
-#        )
-#        cube = MujocoXMLObject("/root/robosuite/robosuite/models/assets/objects/round-nut.xml")
-
-        cube = MujocoXMLObject("assets/marker.xml")
-#        cube = BottleObject()
-        self.mujoco_objects = OrderedDict([("cube", cube)])
+        self.mujoco_objects = OrderedDict([])
 
         # task includes arena, robot, and objects of interest
         self.model = TableTopTask(
@@ -190,7 +177,8 @@ class SawyerPrimitiveReach(SawyerEnv):
             initializer=self.placement_initializer,
         )
         self.model.place_objects()
-
+        pos_arr, quat_arr = self.placement_initializer.sample()
+        self.goal = pos_arr
 
     def _get_reference(self):
         """
@@ -199,14 +187,14 @@ class SawyerPrimitiveReach(SawyerEnv):
         in a flatten array, which is how MuJoCo stores physical simulation data.
         """
         super()._get_reference()
-        self.cube_body_id = self.sim.model.body_name2id("cube")
+        # self.cube_body_id = self.sim.model.body_name2id("cube")
         self.l_finger_geom_ids = [
             self.sim.model.geom_name2id(x) for x in self.gripper.left_finger_geoms
         ]
         self.r_finger_geom_ids = [
             self.sim.model.geom_name2id(x) for x in self.gripper.right_finger_geoms
         ]
-        #self.cube_geom_id = self.sim.model.geom_name2id("cube")
+        # self.cube_geom_id = self.sim.model.geom_name2id("cube")
 
     def _reset_internal(self):
         """
@@ -215,6 +203,11 @@ class SawyerPrimitiveReach(SawyerEnv):
         super()._reset_internal()
 
         # reset positions of objects
+        pos_arr, quat_arr = self.placement_initializer.sample()
+        self.goal = pos_arr
+        # TODO adding marker reset
+        if self.has_renderer:
+            self.env.viewer.viewer.add_marker(pos=pos_arr, size=0.02,0.02,0.02, label='goal', rgba=[1, 0, 0, 1])
         self.model.place_objects()
 
         # reset joint positions
@@ -241,8 +234,10 @@ class SawyerPrimitiveReach(SawyerEnv):
         #reward = -1.0
         reward = 0.0
 
+        # TODO adjust to marker pos
         # reaching reward
-        cube_pos = self.sim.data.body_xpos[self.cube_body_id]
+        # cube_pos = self.sim.data.body_xpos[self.cube_body_id]
+        cube_pos = self.goal
         gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
         dist = np.linalg.norm(gripper_site_pos - cube_pos)
         reaching_reward = 1 - np.tanh(10.0 * dist)
@@ -280,40 +275,48 @@ class SawyerPrimitiveReach(SawyerEnv):
             else:
                 di["image"] = camera_obs
 
+        # TODO change this to marker pos
         # low-level object information
         if self.use_object_obs:
             # position and rotation of object
-            cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
-            cube_pos = np.array([0, 0, 0])
-            cube_quat = convert_quat(
-                np.array(self.sim.data.body_xquat[self.cube_body_id]), to="xyzw"
-            )
+            # cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
+            cube_pos = self.goal
+            # cube_quat = convert_quat(
+            #     np.array(self.sim.data.body_xquat[self.cube_body_id]), to="xyzw"
+            # )
             di["cube_pos"] = cube_pos
-            di["cube_quat"] = cube_quat
+            # di["cube_quat"] = cube_quat
 
             gripper_site_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
             di["gripper_to_cube"] = gripper_site_pos - cube_pos
 
+            # di["object-state"] = np.concatenate(
+            #     [cube_pos, cube_quat, di["gripper_to_cube"]]
+            # )
             di["object-state"] = np.concatenate(
-                [cube_pos, cube_quat, di["gripper_to_cube"]]
+                [cube_pos, di["gripper_to_cube"]]
             )
 
         return di
 
+    # TODO change for marker
     def _check_contact(self):
         """
         Returns True if gripper is in contact with an object.
         """
         collision = False
-        for contact in self.sim.data.contact[: self.sim.data.ncon]:
-            if (
-                self.sim.model.geom_id2name(contact.geom1)
-                in self.gripper.contact_geoms()
-                or self.sim.model.geom_id2name(contact.geom2)
-                in self.gripper.contact_geoms()
-            ):
-                collision = True
-                break
+        # for contact in self.sim.data.contact[: self.sim.data.ncon]:
+        #     if (
+        #         self.sim.model.geom_id2name(contact.geom1)
+        #         in self.gripper.contact_geoms()
+        #         or self.sim.model.geom_id2name(contact.geom2)
+        #         in self.gripper.contact_geoms()
+        #     ):
+        #         collision = True
+        #         break
+        EF_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
+        if np.linalg.norm(self.goal-EF_pos) <= 0.2:
+            collision = True
         return collision
 
     def _check_success(self):
