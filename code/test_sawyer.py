@@ -6,7 +6,7 @@ from robosuite.environments.sawyer import SawyerEnv
 
 from robosuite.models.arenas import TableArena
 from robosuite.models.objects import MujocoXMLObject
-from robosuite.models.tasks import TableTopTask, UniformRandomSampler
+from robosuite.models.tasks import TableTopTask
 
 class SawyerPrimitiveReach(SawyerEnv):
     """
@@ -115,19 +115,12 @@ class SawyerPrimitiveReach(SawyerEnv):
             self.placement_initializer = placement_initializer
         else:
             if self.prim_axis == 'x':
-                self.placement_initializer = UniformRandomSampler(
-                    x_range=[-0.3, 0.3],
-                    y_range=[0, 0],
-                    ensure_object_boundary_in_range=False,
-                    z_rotation=True,
-                )
+                self.x_range = [-0.3, 0.3]
+                self.y_range = [0, 0]
+
             elif self.prim_axis == 'y':
-                self.placement_initializer = UniformRandomSampler(
-                    x_range=[0, 0],
-                    y_range=[-0.3, 0.3],
-                    ensure_object_boundary_in_range=False,
-                    z_rotation=True,
-                )
+                self.x_range = [0, 0]
+                self.y_range = [-0.3, 0.3]
             else:
                 # TODO add z range in placement_initializer -> will cube fall??
                 raise NotImplementedError
@@ -177,7 +170,9 @@ class SawyerPrimitiveReach(SawyerEnv):
             initializer=self.placement_initializer,
         )
         self.model.place_objects()
-        pos_arr = np.array((0.56, np.random.uniform(-0.3,0.3), 0.8))
+        pos_arr = np.array((0.56 + np.random.uniform(self.x_range[0], self.x_range[1]),
+                            np.random.uniform(self.y_range[0], self.y_range[1]),
+                            0.8))
         self.goal = pos_arr
 
     def _get_reference(self):
@@ -204,7 +199,9 @@ class SawyerPrimitiveReach(SawyerEnv):
 
         # reset positions of objects
         # TODO adding marker reset
-        pos_arr = np.array((0.56, np.random.uniform(-0.3,0.3), 0.8))
+        pos_arr = np.array((0.56 + np.random.uniform(self.x_range[0], self.x_range[1]),
+                            np.random.uniform(self.y_range[0], self.y_range[1]),
+                            0.8))
         self.goal = pos_arr
 
         if self.has_renderer:
@@ -232,20 +229,36 @@ class SawyerPrimitiveReach(SawyerEnv):
         Returns:
             reward (float): the reward
         """
-        #reward = -1.0
+        test = 1
+
         reward = 0.0
 
-        # TODO adjust to marker pos
-        # reaching reward
-        # cube_pos = self.sim.data.body_xpos[self.cube_body_id]
-        cube_pos = self.goal
-        gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-        dist = np.linalg.norm(gripper_site_pos - cube_pos)
-        reaching_reward = 1 - np.tanh(10.0 * dist)
-        reward += reaching_reward
-        
-        if self._check_success():
-            reward = 10.0
+        if test == 1:
+            # reaching reward
+            cube_pos = self.goal
+            gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+            dist = np.linalg.norm(gripper_site_pos - cube_pos)
+            reaching_reward = 1 - np.tanh(10.0 * dist)
+            reward += reaching_reward
+
+        if test == 2:
+            cube_pos = self.goal
+            gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+            dist = np.linalg.norm(gripper_site_pos - cube_pos)
+            reaching_reward = 1 - np.tanh(10.0 * dist)
+            reward += reaching_reward
+            if self._check_success():
+                reward = 10.0
+
+        if test == 3:
+            reward = -1.0
+            if self._check_success():
+                reward = 0.0
+
+        if test == 4:
+            reward = -1.0
+            if self._check_success():
+                reward = 1.0
 
         return reward
 
@@ -316,7 +329,9 @@ class SawyerPrimitiveReach(SawyerEnv):
         #         collision = True
         #         break
         EF_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
-        if np.linalg.norm(self.goal-EF_pos) <= 0.2:
+
+        # within 2 cm
+        if np.linalg.norm(self.goal-EF_pos) <= 0.02:
             collision = True
         return collision
 
