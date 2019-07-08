@@ -1,6 +1,8 @@
 import time
 import robosuite as suite
 from robosuite.wrappers.gym_wrapper import GymWrapper
+
+from gym_goal_wrapper import GymGoalEnvWrapper
 from ik_wrapper import IKWrapper
 import numpy as np
 
@@ -39,7 +41,7 @@ env1 = SawyerPrimitiveReach(
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
 env2 = IKWrapper(env1)
-env3 = GymWrapper(env2)
+env3 = GymGoalEnvWrapper(env2)
 
 def view(env, loop):
     for i in range(loop):

@@ -12,7 +12,7 @@ from robosuite.wrappers import Wrapper
 class GymGoalEnvWrapper(Wrapper):
     env = None
 
-    def __init__(self, env, keys=None):
+    def __init__(self, env, keys=None, reward_type='dense'):
         """
         Initializes the Gym wrapper.
 
@@ -44,6 +44,32 @@ class GymGoalEnvWrapper(Wrapper):
         high = np.array([1, 1, 1])
         self.action_space = spaces.Box(low=low, high=high)
 
+        self.reward_type = reward_type
+        if not (self.reward_type == 'dense' or self.reward_type == 'sparse'):
+            raise Exception(
+                "Only dense or sparse reward"
+            )
+
+    def _get_obs(self, obs_dict, verbose=False):
+        """
+        Filters keys of interest out and concatenate the information. Return as goal env dict
+
+        Args:
+            obs_dict: ordered dictionary of observations
+        """
+        ob_lst = []
+        di = {}
+        for key in obs_dict:
+            if key in self.keys:
+                if verbose:
+                    print("adding key: {}".format(key))
+                ob_lst.append(obs_dict[key])
+        di['observation'] = np.concatenate(ob_lst)
+        di['desired_goal'] = obs_dict['object-state'][0:3]
+        di['achieved_goal'] = obs_dict['robot-state'][23:26]
+
+        return di
+
     def _flatten_obs(self, obs_dict, verbose=False):
         """
         Filters keys of interest out and concatenate the information.
@@ -61,11 +87,18 @@ class GymGoalEnvWrapper(Wrapper):
 
     def reset(self):
         ob_dict = self.env.reset()
-        flattened = self._flatten_obs(ob_dict)
-        
-        return self._flatten_obs(ob_dict)
+        return self._get_obs(ob_dict)
 
     def step(self, action):
         ob_dict, reward, done, info = self.env.step(action)
-        flattened = self._flatten_obs(ob_dict)
-        return self._flatten_obs(ob_dict), reward, done, info
+        return self._get_obs(ob_dict), reward, done, info
+
+    def compute_reward(self, achieved_goal, desired_goal, info):
+        d = np.linalg.norm(achieved_goal - desired_goal)
+        distance_threshold = 0.01
+        if self.reward_type == 'sparse':
+            return -np.float32(d > distance_threshold)
+        else:
+            return -d
+
+
