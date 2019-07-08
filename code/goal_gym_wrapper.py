@@ -39,7 +39,9 @@ class GymGoalEnvWrapper(Wrapper):
            achieved_goal=spaces.Box(-np.inf, np.inf, shape = (3,)),
            observation=spaces.Box(low=low, high=high,),
         ))
-        low, high = self.env.action_spec
+
+        low = np.array([-1, -1, -1])
+        high = np.array([1, 1, 1])
         self.action_space = spaces.Box(low=low, high=high)
 
     def _flatten_obs(self, obs_dict, verbose=False):

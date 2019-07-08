@@ -1,6 +1,7 @@
 import time
 import robosuite as suite
 from robosuite.wrappers.gym_wrapper import GymWrapper
+from ik_wrapper import IKWrapper
 import numpy as np
 
 from stable_baselines.ddpg.policies import MlpPolicy
@@ -14,7 +15,7 @@ from test_sawyer import SawyerPrimitiveReach
 import argparse
 
 
-render = False
+render = True
 
 policy = 'x'
 
@@ -23,11 +24,12 @@ nb_rollout_steps = 50
 batch_size = 64
 critic_l2_reg = 0.01
 buffer_size=int(1e6)
+normalize = True
 
-total_timesteps = int(0.5e3)
+action_noise=None
+total_timesteps = int(5e3)
 
-env = GymWrapper(
-        SawyerPrimitiveReach(
+env1 = SawyerPrimitiveReach(
             prim_axis=policy,
             has_renderer=render,
             has_offscreen_renderer=False,
@@ -36,5 +38,12 @@ env = GymWrapper(
             horizon = 500,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
-    )
+env2 = IKWrapper(env1)
+env3 = GymWrapper(env2)
 
+def view(env, loop):
+    for i in range(loop):
+        grip = np.random.randint(0,2)
+        action = np.array([0, 0, 0, 0, 0, 0, 1, grip])
+        env.step(action)
+        env.render()
