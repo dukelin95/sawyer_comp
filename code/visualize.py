@@ -7,7 +7,9 @@ from stable_baselines.ddpg.policies import MlpPolicy
 from stable_baselines.ddpg.noise import OrnsteinUhlenbeckActionNoise
 from stable_baselines import DDPG
 
-from sawyer_primitive_reach import SawyerPrimitiveReach
+#from sawyer_primitive_reach import SawyerPrimitiveReach
+
+from test_sawyer import SawyerPrimitiveReach
 import argparse
 
 parser = argparse.ArgumentParser(description='Select pkl file to visualize')
@@ -16,7 +18,7 @@ args = parser.parse_args()
 
 env = GymWrapper(
         SawyerPrimitiveReach(
-            prim_axis='x',
+            prim_axis='y',
             has_renderer=True,
             has_offscreen_renderer=False,
       	    use_camera_obs=False,
@@ -35,5 +37,7 @@ for u in range(5):
   while not done:
     action, _states = model.predict(obs)
     obs, rewards, done, info = env.step(action)
+    env.viewer.viewer.add_marker(pos=env.goal, size=np.array((0.02,0.02,0.02)), label='goal', rgba=[1, 0, 0, 0.5])
+    if env.reward() > 0.1: print(env.reward())
     env.render()
 

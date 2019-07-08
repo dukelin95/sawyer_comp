@@ -6,7 +6,7 @@ from robosuite.environments.sawyer import SawyerEnv
 
 from robosuite.models.arenas import TableArena
 from robosuite.models.objects import MujocoXMLObject
-from robosuite.models.tasks import TableTopTask
+from robosuite.models.tasks import TableTopTask, UniformRandomSampler
 
 class SawyerPrimitiveReach(SawyerEnv):
     """
@@ -111,19 +111,18 @@ class SawyerPrimitiveReach(SawyerEnv):
         self.reward_shaping = reward_shaping
 
         # object placement initializer
-        if placement_initializer:
-            self.placement_initializer = placement_initializer
-        else:
-            if self.prim_axis == 'x':
-                self.x_range = [-0.3, 0.3]
-                self.y_range = [0, 0]
+        self.placement_initializer = placement_initializer
+        limits = [.295, .305]
+        if self.prim_axis == 'x':
+            self.x_range = limits
+            self.y_range = [0, 0]
 
-            elif self.prim_axis == 'y':
-                self.x_range = [0, 0]
-                self.y_range = [-0.3, 0.3]
-            else:
-                # TODO add z range in placement_initializer -> will cube fall??
-                raise NotImplementedError
+        elif self.prim_axis == 'y':
+            self.x_range = [0, 0]
+            self.y_range = limits
+        else:
+            # TODO add z range in placement_initializer -> will cube fall??
+            raise NotImplementedError
 
         super().__init__(
             gripper_type=gripper_type,
@@ -229,7 +228,7 @@ class SawyerPrimitiveReach(SawyerEnv):
         Returns:
             reward (float): the reward
         """
-        test = 1
+        test = 2
 
         reward = 0.0
 

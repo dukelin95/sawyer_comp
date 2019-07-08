@@ -6,7 +6,9 @@ import numpy as np
 from stable_baselines.ddpg.policies import MlpPolicy
 from stable_baselines.ddpg.noise import OrnsteinUhlenbeckActionNoise
 from stable_baselines import DDPG
+from stable_baselines import HER
 
+from utils import HERGoalEnvWrapper
 # from sawyer_primitive_reach import SawyerPrimitiveReach
 from test_sawyer import SawyerPrimitiveReach
 import argparse
@@ -30,16 +32,16 @@ render = False
 
 policy = 'x'
 
-nb_train_steps = 250
-nb_rollout_steps = 500
-batch_size = 256
+nb_train_steps = 25
+nb_rollout_steps = 50
+batch_size = 64
 critic_l2_reg = 0.01
 buffer_size=int(1e6)
-normalize=True
 
-total_timesteps = int(0.5e6)
+total_timesteps = int(0.5e3)
 
-env = GymWrapper(
+env = HERGoalEnvWrapper(
+       GymWrapper(
         SawyerPrimitiveReach(
             prim_axis=policy,
             has_renderer=render,
@@ -49,7 +51,7 @@ env = GymWrapper(
             horizon = 500,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
-    )
+    ))
 
 # the noise objects for DDPG
 n_actions = env.action_space.shape[-1]
@@ -61,19 +63,18 @@ if log:
 else:
   suff = None
 
-model = DDPG('MlpPolicy', env, verbose=2, render=render, 
-              param_noise=None, 
-              action_noise=action_noise,
-              nb_train_steps = nb_train_steps,
-              nb_rollout_steps = nb_rollout_steps,
-              normalize_returns = normalize,
-              normalize_observations = normalize,
-              batch_size = batch_size, 
-              critic_l2_reg=critic_l2_reg,
-              buffer_size=buffer_size,
-#              policy_kwargs={'layers':[400,300]},
-              logging=suff)
-
+kwargs = {'verbose':2, 
+           'render':render, 
+           'param_noise':None, 
+           'action_noise':action_noise,
+           'nb_train_steps':nb_train_steps,
+           'nb_rollout_steps':nb_rollout_steps,
+           'batch_size':batch_size, 
+           'critic_l2_reg':critic_l2_reg,
+           'buffer_size':buffer_size,
+#          'policy_kwargs':{'layers':[400,300]},
+           'logging':suff}
+model = HER('MlpPolicy', env, DDPG, **kwargs)
 start = time.time()
 
 model.learn(total_timesteps=total_timesteps)
