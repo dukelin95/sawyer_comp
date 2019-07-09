@@ -228,38 +228,22 @@ class SawyerPrimitiveReach(SawyerEnv):
         Returns:
             reward (float): the reward
         """
-        test = 2
-
-        reward = 0.0
-
-        if test == 1:
-            # reaching reward
-            cube_pos = self.goal
-            gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-            dist = np.linalg.norm(gripper_site_pos - cube_pos)
-            reaching_reward = 1 - np.tanh(10.0 * dist)
-            reward += reaching_reward
-
-        if test == 2:
-            cube_pos = self.goal
-            gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-            dist = np.linalg.norm(gripper_site_pos - cube_pos)
-            reaching_reward = 1 - np.tanh(10.0 * dist)
-            reward += reaching_reward
-            if self._check_success():
+     #   velocity_pen = np.linalg(np.array(
+     #       [self.sim.data.qvel[x] for x in self._ref_joint_vel_indexes]
+     #  ))
+        velocity_pen = 0.0
+        distance_threshold = 0.01
+        cube_pos = self.goal
+        gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+        d = np.linalg.norm(gripper_site_pos - cube_pos)
+        if self.reward_shaping: # dense
+            reward = 1 - np.tanh(10 * d)
+            if d <= distance_threshold:
                 reward = 10.0
-
-        if test == 3:
-            reward = -1.0
-            if self._check_success():
-                reward = 0.0
-
-        if test == 4:
-            reward = -1.0
-            if self._check_success():
-                reward = 1.0
-
-        return reward
+        else: # sparse (-1 or 0)
+            reward = -np.float32(d > distance_threshold)
+        
+        return reward - velocity_pen
 
     def _get_observation(self):
         """

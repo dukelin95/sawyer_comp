@@ -1,6 +1,8 @@
 import time
 import robosuite as suite
-from robosuite.wrappers.gym_wrapper import GymWrapper
+from gym_goal_wrapper import GymGoalEnvWrapper
+from ik_wrapper import IKWrapper
+
 import numpy as np
 
 from stable_baselines.ddpg.policies import MlpPolicy
@@ -8,7 +10,6 @@ from stable_baselines.ddpg.noise import OrnsteinUhlenbeckActionNoise
 from stable_baselines import DDPG
 from stable_baselines import HER
 
-from utils import HERGoalEnvWrapper
 # from sawyer_primitive_reach import SawyerPrimitiveReach
 from test_sawyer import SawyerPrimitiveReach
 import argparse
@@ -23,35 +24,33 @@ else:
   print("All the saves")
   log = True
 
-# use robosuite's gym_wrapper to wrap the sawyer stack env for baselines
-
-# no object observation for PX,PY,PZ
-# TODO turn on for pick policy?
-
 render = False
 
 policy = 'x'
 
-nb_train_steps = 25
-nb_rollout_steps = 50
+nb_train_steps = 250
+nb_rollout_steps = 500
 batch_size = 64
 critic_l2_reg = 0.01
 buffer_size=int(1e6)
 
-total_timesteps = int(0.5e3)
+total_timesteps = int(0.5e6)
 
-env = HERGoalEnvWrapper(
-       GymWrapper(
+reward_shaping = False 
+
+env = GymGoalEnvWrapper(
+       IKWrapper(
         SawyerPrimitiveReach(
             prim_axis=policy,
             has_renderer=render,
             has_offscreen_renderer=False,
       	    use_camera_obs=False,
             use_object_obs=True,
+            reward_shaping=reward_shaping,
             horizon = 500,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
-    ))
+    ), reward_shaping=reward_shaping)
 
 # the noise objects for DDPG
 n_actions = env.action_space.shape[-1]
@@ -72,7 +71,7 @@ kwargs = {'verbose':2,
            'batch_size':batch_size, 
            'critic_l2_reg':critic_l2_reg,
            'buffer_size':buffer_size,
-#          'policy_kwargs':{'layers':[400,300]},
+           'policy_kwargs':{'layer_norm':True},
            'logging':suff}
 model = HER('MlpPolicy', env, DDPG, **kwargs)
 start = time.time()

@@ -11,8 +11,8 @@ from robosuite.wrappers import Wrapper
 
 class GymGoalEnvWrapper(Wrapper):
     env = None
-
-    def __init__(self, env, keys=None, reward_type='dense'):
+ 
+    def __init__(self, env, keys=None, reward_shaping=True):
         """
         Initializes the Gym wrapper.
 
@@ -23,7 +23,7 @@ class GymGoalEnvWrapper(Wrapper):
                 observation dictionary. Defaults to robot-state and object-state.
         """
         self.env = env
-
+        self.metadata = None
         if keys is None:
             assert self.env.use_object_obs, "Object observations need to be enabled."
             keys = ["robot-state", "object-state"]
@@ -44,11 +44,7 @@ class GymGoalEnvWrapper(Wrapper):
         high = np.array([1, 1, 1])
         self.action_space = spaces.Box(low=low, high=high)
 
-        self.reward_type = reward_type
-        if not (self.reward_type == 'dense' or self.reward_type == 'sparse'):
-            raise Exception(
-                "Only dense or sparse reward"
-            )
+        self.reward_shaping = reward_shaping
 
     def _get_obs(self, obs_dict, verbose=False):
         """
@@ -94,11 +90,16 @@ class GymGoalEnvWrapper(Wrapper):
         return self._get_obs(ob_dict), reward, done, info
 
     def compute_reward(self, achieved_goal, desired_goal, info):
-        d = np.linalg.norm(achieved_goal - desired_goal)
+        velocity_pen = 0.0
         distance_threshold = 0.01
-        if self.reward_type == 'sparse':
-            return -np.float32(d > distance_threshold)
-        else:
-            return -d
+        d = np.linalg.norm(achieved_goal - desired_goal)
+        if self.reward_shaping: # dense
+            reward = 1 - np.tanh(10 * d)
+            if d <= distance_threshold:
+                reward = 10.0
+        else: # sparse (-1 or 0)
+            reward = -np.float32(d > distance_threshold)
+       
+        return reward - velocity_pen
 
 

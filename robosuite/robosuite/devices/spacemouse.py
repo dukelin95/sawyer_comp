@@ -22,7 +22,7 @@ from collections import namedtuple
 import numpy as np
 try:
     import hid
-except ModuleNotFoundError as exc:
+except ImportError as exc:
     raise ImportError("Unable to load module hid, required to interface with SpaceMouse. "
                       "Only Mac OS X is officially supported. Install the additional "
                       "requirements with `pip install -r requirements-ik.txt`") from exc

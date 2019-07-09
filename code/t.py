@@ -45,7 +45,7 @@ env3 = GymGoalEnvWrapper(env2)
 
 def view(env, loop):
     for i in range(loop):
-        grip = np.random.randint(0,2)
-        action = np.array([0, 0, 0, 0, 0, 0, 1, grip])
-        env.step(action)
+        action = np.array([0.01, 0, 0])
+        obs_dict, r, d, i = env.step(action)
+        print(r)
         env.render()
