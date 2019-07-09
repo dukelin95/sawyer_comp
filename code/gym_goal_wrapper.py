@@ -40,8 +40,8 @@ class GymGoalEnvWrapper(Wrapper):
            observation=spaces.Box(low=low, high=high,),
         ))
 
-        low = np.array([-1, -1, -1])
-        high = np.array([1, 1, 1])
+        low = -np.array([5, .5, .5])
+        high = np.array([5, .5, .5])
         self.action_space = spaces.Box(low=low, high=high)
 
         self.reward_shaping = reward_shaping

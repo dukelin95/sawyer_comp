@@ -20,6 +20,11 @@ parser.add_argument('path', metavar='path', type=str)
 args = parser.parse_args()
 
 policy = 'x'
+reward_shaping = True
+if reward_shaping:
+    print("Policy {0} with dense rewards".format(policy))
+else:
+    print("Policy {0} with sparse rewards".format(policy))
 env = GymGoalEnvWrapper(
        IKWrapper(
         SawyerPrimitiveReach(
@@ -28,11 +33,11 @@ env = GymGoalEnvWrapper(
             has_offscreen_renderer=False,
       	    use_camera_obs=False,
             use_object_obs=True,
+            reward_shaping=reward_shaping,
             horizon = 500,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
-       )
-      )
+       ),reward_shaping=reward_shaping)
 
 path = args.path
 model = HER.load(path, env=env)

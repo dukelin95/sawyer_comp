@@ -163,7 +163,8 @@ class HindsightExperienceReplayWrapper(object):
             # For each sampled goals, store a new transition
             for goal in sampled_goals:
                 # Copy transition to avoid modifying the original one
-                obs, action, reward, next_obs, done = copy.deepcopy(transition)
+                # obs, action, reward, next_obs, done = copy.deepcopy(transition)
+                obs, action, reward, next_obs, done = transition
 
                 # Convert concatenated obs to dict, so we can update the goals
                 obs_dict, next_obs_dict = map(self.env.convert_obs_to_dict, (obs, next_obs))

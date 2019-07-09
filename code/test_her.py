@@ -24,19 +24,23 @@ else:
   print("All the saves")
   log = True
 
-render = False
 
+# env
 policy = 'x'
+render = False
+reward_shaping = False
 
+# DDPG
+action_noise = None
+normalize = True
 nb_train_steps = 250
 nb_rollout_steps = 500
 batch_size = 64
 critic_l2_reg = 0.01
 buffer_size=int(1e6)
 
+# how long to train
 total_timesteps = int(0.5e6)
-
-reward_shaping = False 
 
 env = GymGoalEnvWrapper(
        IKWrapper(
@@ -53,10 +57,10 @@ env = GymGoalEnvWrapper(
     ), reward_shaping=reward_shaping)
 
 # the noise objects for DDPG
-n_actions = env.action_space.shape[-1]
+#n_actions = env.action_space.shape[-1]
 #sigma from DDPG paper
 #action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=float(0.2) * np.ones(n_actions))
-action_noise = None
+
 if log:
   suff = str(time.strftime("_%d_%b_%Y_%H_%M_%S", time.localtime()))
 else:
@@ -66,6 +70,7 @@ kwargs = {'verbose':2,
            'render':render, 
            'param_noise':None, 
            'action_noise':action_noise,
+           'normalize_observations':normalize,
            'nb_train_steps':nb_train_steps,
            'nb_rollout_steps':nb_rollout_steps,
            'batch_size':batch_size, 
