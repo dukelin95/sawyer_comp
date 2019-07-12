@@ -20,6 +20,8 @@ import argparse
 render = True
 
 policy = 'x'
+limits = [0.2, 0.2] 
+table_full_size = (0.8, 0.8, 0.4)
 
 nb_train_steps = 25
 nb_rollout_steps = 50
@@ -33,6 +35,8 @@ total_timesteps = int(5e3)
 
 env1 = SawyerPrimitiveReach(
             prim_axis=policy,
+            limits=limits,
+            table_full_size=table_full_size,
             has_renderer=render,
             has_offscreen_renderer=False,
       	    use_camera_obs=False,
@@ -45,10 +49,23 @@ env3 = GymGoalEnvWrapper(env2)
 env3.reset()
 env3.render()
 
-def view(env, loop):
+def find(env1, env3, loop):
+    p = []
+    q = []
     for i in range(loop):
-        action = np.array([0.00, 0.00, 0.0])
-        action[np.random.randint(3)] = 0.01
+        o = env3.reset()
+        env3.render()
+        p.append(np.array(env1.sim.data.site_xpos[env1.eef_site_id]))
+        q.append(suite.utils.transform_utils.convert_quat(
+                 env1.sim.data.get_body_xquat("right_hand"), to='xyzw'))
+    return p, q
+
+def view(env, loop, action=None):
+    for i in range(loop):
+        if action is None:
+           action = np.array([0.00, 0.00, 0.0])
+           action[np.random.randint(3)] = 0.01
         obs_dict, r, d, i = env.step(action)
+        env3.viewer.viewer.add_marker(pos=env3.goal, size=np.array((0.02,0.02,0.02)), label='goal', rgba=[1, 0, 0, 0.5])
         print(action)
         env.render()

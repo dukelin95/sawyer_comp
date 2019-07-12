@@ -174,10 +174,10 @@ class SawyerPrimitiveReach(SawyerEnv):
         )
         self.model.place_objects()
 
-        gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-        self.goal = np.array((gripper_site_pos[0] + np.random.uniform(self.x_range[0], self.x_range[1]),
-                              gripper_site_pos[1] + np.random.uniform(self.y_range[0], self.y_range[1]),
-                              gripper_site_pos[2] + np.random.uniform(self.z_range[0], self.z_range[1])))
+        #gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+        #self.goal = np.array((gripper_site_pos[0] + np.random.uniform(self.x_range[0], self.x_range[1]),
+         #                     gripper_site_pos[1] + np.random.uniform(self.y_range[0], self.y_range[1]),
+          #                    gripper_site_pos[2] + np.random.uniform(self.z_range[0], self.z_range[1])))
 
     def _get_reference(self):
         """

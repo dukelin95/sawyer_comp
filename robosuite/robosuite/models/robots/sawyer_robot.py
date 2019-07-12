@@ -34,15 +34,16 @@ class Sawyer(Robot):
         constant_quat = np.array([-0.01704371, -0.99972409,  0.00199679, -0.01603944])
         target_position = np.array([0.58038172, -0.01562932,  0.90211762]) \
                          + np.random.uniform(-0.2, 0.2, 3)
-
+        print(target_position, constant_quat)
         self.controller = SawyerIKController(
             bullet_data_path=os.path.join(robosuite.models.assets_root, "bullet_data"),
             robot_jpos_getter=self._robot_jpos_getter,
         )
         joint_list = self.controller.inverse_kinematics(target_position, constant_quat)
+        print(joint_list)
         return np.array(joint_list)
         # return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])
 
     # helper function for ik controller
     def _robot_jpos_getter(self):
-        return np.array(self.joints())
+        return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])

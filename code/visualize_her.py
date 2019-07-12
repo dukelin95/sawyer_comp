@@ -21,6 +21,9 @@ args = parser.parse_args()
 
 policy = 'x'
 reward_shaping = False
+limits = [0.2, 0.2]
+table_full_size = (0.8, 0.8, 0.4)
+
 if reward_shaping:
     print("Policy {0} with dense rewards".format(policy))
 else:
@@ -29,6 +32,8 @@ env = GymGoalEnvWrapper(
        IKWrapper(
         SawyerPrimitiveReach(
             prim_axis=policy,
+            limits=limits,
+            table_full_size=table_full_size,
             has_renderer=True,
             has_offscreen_renderer=False,
       	    use_camera_obs=False,
@@ -41,7 +46,10 @@ env = GymGoalEnvWrapper(
 
 path = args.path
 model = HER.load(path, env=env)
-for u in range(1):
+
+succ = 0
+loop = 10
+for u in range(loop):
   print("Trial{}".format(u))
   obs = env.reset()
   done = False
@@ -49,6 +57,6 @@ for u in range(1):
     action, _states = model.predict(obs)
     obs, rewards, done, info = env.step(action)
     env.viewer.viewer.add_marker(pos=env.goal, size=np.array((0.02,0.02,0.02)), label='goal', rgba=[1, 0, 0, 0.5])
-    if env.reward() > 0.1: print(env.reward())
+    if env.reward() == 0.0: succ = succ + 1
     env.render()
-
+print('{0}/{1}'.format(succ, loop))
