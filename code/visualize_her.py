@@ -21,8 +21,9 @@ args = parser.parse_args()
 
 policy = 'x'
 reward_shaping = False
-limits = [0.2, 0.2]
-table_full_size = (0.8, 0.8, 0.4)
+limits = [-.15, -.25]
+table_full_size = (0.8, 0.8, 0.8)
+random_arm_init = False
 
 if reward_shaping:
     print("Policy {0} with dense rewards".format(policy))
@@ -34,6 +35,7 @@ env = GymGoalEnvWrapper(
             prim_axis=policy,
             limits=limits,
             table_full_size=table_full_size,
+            random_arm_init=random_arm_init,
             has_renderer=True,
             has_offscreen_renderer=False,
       	    use_camera_obs=False,
@@ -48,15 +50,18 @@ path = args.path
 model = HER.load(path, env=env)
 
 succ = 0
-loop = 10
+loop = 100
 for u in range(loop):
   print("Trial{}".format(u))
   obs = env.reset()
+  print(env.goal)
   done = False
   while not done:
     action, _states = model.predict(obs)
     obs, rewards, done, info = env.step(action)
     env.viewer.viewer.add_marker(pos=env.goal, size=np.array((0.02,0.02,0.02)), label='goal', rgba=[1, 0, 0, 0.5])
-    if env.reward() == 0.0: succ = succ + 1
+    if env.reward() == 0.0: 
+       succ = succ + 1
+       print(obs['achieved_goal'])
     env.render()
 print('{0}/{1}'.format(succ, loop))

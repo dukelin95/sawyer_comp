@@ -22,6 +22,7 @@ render = True
 policy = 'x'
 limits = [0.2, 0.2] 
 table_full_size = (0.8, 0.8, 0.4)
+random_arm_init=False
 
 nb_train_steps = 25
 nb_rollout_steps = 50
@@ -37,6 +38,7 @@ env1 = SawyerPrimitiveReach(
             prim_axis=policy,
             limits=limits,
             table_full_size=table_full_size,
+            random_arm_init=random_arm_init,
             has_renderer=render,
             has_offscreen_renderer=False,
       	    use_camera_obs=False,

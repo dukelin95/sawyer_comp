@@ -28,7 +28,8 @@ else:
 # env
 policy = 'x'
 limits = [0.2, 0.2]
-table_full_size = (0.8, 0.8, 0.4)
+table_full_size = (0.8, 0.8, 0.8) 
+random_arm_init = True 
 render = False 
 reward_shaping = False 
 horizon = 100
@@ -52,6 +53,7 @@ env = GymGoalEnvWrapper(
             prim_axis=policy,
             limits=limits,
             table_full_size=table_full_size,
+            random_arm_init=random_arm_init,
             has_renderer=render,
             has_offscreen_renderer=False,
       	    use_camera_obs=False,

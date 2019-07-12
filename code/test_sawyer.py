@@ -24,6 +24,7 @@ class SawyerPrimitiveReach(SawyerEnv):
         prim_axis = 'x',
         gripper_type="TwoFingerGripper",
         limits = [0.2, 0.2],
+        random_arm_init = False,
         table_full_size=(0.8, 0.8, 0.8),
         table_friction=(1., 5e-3, 1e-4),
         use_camera_obs=False,
@@ -105,6 +106,7 @@ class SawyerPrimitiveReach(SawyerEnv):
 
         self.prim_axis = prim_axis
         self.limits = limits
+        self.random_arm_init = random_arm_init
         # settings for table top
         self.table_full_size = table_full_size
         self.table_friction = table_friction
@@ -208,27 +210,34 @@ class SawyerPrimitiveReach(SawyerEnv):
         # reset positions of objects
         self.model.place_objects()
 
-        # random initialization of arm
-        constant_quat = np.array([-0.01704371, -0.99972409, 0.00199679, -0.01603944])
-        target_position = np.array([0.58038172, -0.01562932, 0.90211762]) \
-                          + np.random.uniform(-0.2, 0.2, 3)
-        print(target_position, constant_quat)
-        self.controller = SawyerIKController(
-            bullet_data_path=os.path.join(robosuite.models.assets_root, "bullet_data"),
-            robot_jpos_getter=self._robot_jpos_getter,
-        )
-        joint_list = self.controller.inverse_kinematics(target_position, constant_quat)
-        init_pos = np.array(joint_list)
-
-        # init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
-        # init_pos += np.random.randn(init_pos.shape[0]) * 0.02
+        if self.random_arm_init:
+            # random initialization of arm
+            constant_quat = np.array([-0.01704371, -0.99972409, 0.00199679, -0.01603944])
+            target_position = np.array([0.58038172, -0.01562932, 0.90211762]) \
+                              + np.random.uniform(-0.2, 0.2, 3)
+            print(target_position, constant_quat)
+            self.controller = SawyerIKController(
+                bullet_data_path=os.path.join(robosuite.models.assets_root, "bullet_data"),
+                robot_jpos_getter=self._robot_jpos_getter,
+            )
+            joint_list = self.controller.inverse_kinematics(target_position, constant_quat)
+            init_pos = np.array(joint_list)
+        else:
+            init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
+            init_pos += np.random.randn(init_pos.shape[0]) * 0.02
         self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
 
+    def reset(self):
+        self._destroy_viewer()
+        self._reset_internal()
+        self.sim.forward()
+        
         # reset goal (marker)
         gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
         self.goal = np.array((gripper_site_pos[0] + np.random.uniform(self.x_range[0], self.x_range[1]),
                               gripper_site_pos[1] + np.random.uniform(self.y_range[0], self.y_range[1]),
                               gripper_site_pos[2] + np.random.uniform(self.z_range[0], self.z_range[1])))
+        return self._get_observation()
 
     def _robot_jpos_getter(self):
         return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])
