@@ -107,6 +107,7 @@ class SawyerPrimitiveReach(SawyerEnv):
         self.prim_axis = prim_axis
         self.limits = limits
         self.random_arm_init = random_arm_init
+        self.distance_threshold = 0.05
         # settings for table top
         self.table_full_size = table_full_size
         self.table_friction = table_friction
@@ -121,18 +122,15 @@ class SawyerPrimitiveReach(SawyerEnv):
         self.placement_initializer = placement_initializer
 
         if self.prim_axis == 'x':
-            self.x_range = self.limits
-            self.y_range = [0, 0]
-            self.z_range = [0, 0]
+            self.lower_range = [self.limits[0], 0, 0]
+            self.upper_range = [self.limits[1], 0, 0]
 
         elif self.prim_axis == 'y':
-            self.x_range = [0, 0]
-            self.y_range = self.limits
-            self.z_range = [0, 0]
+            self.lower_range = [0, self.limits[0], 0]
+            self.upper_range = [0, self.limits[1], 0]
         else:
-            self.x_range = [0, 0]
-            self.y_range = [0, 0]
-            self.z_range = self.limits
+            self.lower_range = [0, 0, self.limits[0]]
+            self.upper_range = [0, 0, self.limits[1]]
 
         super().__init__(
             gripper_type=gripper_type,
@@ -179,11 +177,6 @@ class SawyerPrimitiveReach(SawyerEnv):
             initializer=self.placement_initializer,
         )
         self.model.place_objects()
-
-        #gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-        #self.goal = np.array((gripper_site_pos[0] + np.random.uniform(self.x_range[0], self.x_range[1]),
-         #                     gripper_site_pos[1] + np.random.uniform(self.y_range[0], self.y_range[1]),
-          #                    gripper_site_pos[2] + np.random.uniform(self.z_range[0], self.z_range[1])))
 
     def _get_reference(self):
         """
@@ -233,10 +226,13 @@ class SawyerPrimitiveReach(SawyerEnv):
         self.sim.forward()
         
         # reset goal (marker)
-        gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-        self.goal = np.array((gripper_site_pos[0] + np.random.uniform(self.x_range[0], self.x_range[1]),
-                              gripper_site_pos[1] + np.random.uniform(self.y_range[0], self.y_range[1]),
-                              gripper_site_pos[2] + np.random.uniform(self.z_range[0], self.z_range[1])))
+        gripper_site_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
+        distance = np.random.uniform(self.lower_range, self.upper_range)
+        while np.linalg.norm(distance) <= (self.distance_threshold * 1.75):
+            distance = np.random.uniform(self.lower_range, self.upper_range)
+
+        self.goal = gripper_site_pos + distance
+
         return self._get_observation()
 
     def _robot_jpos_getter(self):
@@ -262,17 +258,17 @@ class SawyerPrimitiveReach(SawyerEnv):
      #       [self.sim.data.qvel[x] for x in self._ref_joint_vel_indexes]
      #  ))
         velocity_pen = 0.0
-        distance_threshold = 0.05
+        self.distance_threshold = 0.05
         cube_pos = self.goal
         gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
         d = np.linalg.norm(gripper_site_pos - cube_pos)
         if self.reward_shaping: # dense
             reward = 1 - np.tanh(10 * d)
-            if d <= distance_threshold:
+            if d <= self.distance_threshold:
                 reward = 10.0
         else: # sparse (-1 or 0)
-            #reward = -np.float32(d > distance_threshold)
-            if d > distance_threshold:
+            #reward = -np.float32(d > self.distance_threshold)
+            if d > self.distance_threshold:
                 reward = -1.0
             else:
                 reward = 0.0
