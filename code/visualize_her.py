@@ -20,7 +20,7 @@ parser.add_argument('path', metavar='path', type=str)
 args = parser.parse_args()
 
 policy = 'x'
-reward_shaping = True
+reward_shaping = False
 if reward_shaping:
     print("Policy {0} with dense rewards".format(policy))
 else:
@@ -34,15 +34,14 @@ env = GymGoalEnvWrapper(
       	    use_camera_obs=False,
             use_object_obs=True,
             reward_shaping=reward_shaping,
-            horizon = 500,
+            horizon = 100,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
        ),reward_shaping=reward_shaping)
 
 path = args.path
 model = HER.load(path, env=env)
-
-for u in range(5):
+for u in range(1):
   print("Trial{}".format(u))
   obs = env.reset()
   done = False

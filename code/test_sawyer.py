@@ -112,7 +112,7 @@ class SawyerPrimitiveReach(SawyerEnv):
 
         # object placement initializer
         self.placement_initializer = placement_initializer
-        limits = [.295, .305]
+        limits = [.2, .2]
         if self.prim_axis == 'x':
             self.x_range = limits
             self.y_range = [0, 0]
@@ -232,7 +232,7 @@ class SawyerPrimitiveReach(SawyerEnv):
      #       [self.sim.data.qvel[x] for x in self._ref_joint_vel_indexes]
      #  ))
         velocity_pen = 0.0
-        distance_threshold = 0.01
+        distance_threshold = 0.05
         cube_pos = self.goal
         gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
         d = np.linalg.norm(gripper_site_pos - cube_pos)
@@ -241,7 +241,11 @@ class SawyerPrimitiveReach(SawyerEnv):
             if d <= distance_threshold:
                 reward = 10.0
         else: # sparse (-1 or 0)
-            reward = -np.float32(d > distance_threshold)
+            #reward = -np.float32(d > distance_threshold)
+            if d > distance_threshold:
+                reward = -1.0
+            else:
+                reward = 0.0
         
         return reward - velocity_pen
 

@@ -27,20 +27,22 @@ else:
 
 # env
 policy = 'x'
-render = False
-reward_shaping = False
+render = False 
+reward_shaping = False 
+horizon = 100
 
 # DDPG
 action_noise = None
 normalize = True
-nb_train_steps = 250
-nb_rollout_steps = 500
-batch_size = 64
+nb_train_steps = 50
+nb_rollout_steps = 100
+batch_size = 256
 critic_l2_reg = 0.01
-buffer_size=int(1e6)
+buffer_size=int(.5e6)
+random_exploration=0.2
 
 # how long to train
-total_timesteps = int(0.5e6)
+total_timesteps = int(0.25e6)
 
 env = GymGoalEnvWrapper(
        IKWrapper(
@@ -51,7 +53,7 @@ env = GymGoalEnvWrapper(
       	    use_camera_obs=False,
             use_object_obs=True,
             reward_shaping=reward_shaping,
-            horizon = 500,
+            horizon = horizon,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
     ), reward_shaping=reward_shaping)
@@ -76,12 +78,13 @@ kwargs = {'verbose':2,
            'batch_size':batch_size, 
            'critic_l2_reg':critic_l2_reg,
            'buffer_size':buffer_size,
+           'random_exploration':random_exploration,
            'policy_kwargs':{'layer_norm':True},
            'logging':suff}
 model = HER('MlpPolicy', env, DDPG, **kwargs)
 start = time.time()
 
-model.learn(total_timesteps=total_timesteps)
+model.learn(total_timesteps=total_timesteps, log_interval=1)
 
 if log :
   model.save("pkl/{}".format(suff))

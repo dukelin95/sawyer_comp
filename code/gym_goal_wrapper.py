@@ -40,8 +40,9 @@ class GymGoalEnvWrapper(Wrapper):
            observation=spaces.Box(low=low, high=high,),
         ))
 
-        low = -np.array([5, .5, .5])
-        high = np.array([5, .5, .5])
+        low = -np.array([.01, .01, .01])
+        high = np.array([.01, .01, .01])
+
         self.action_space = spaces.Box(low=low, high=high)
 
         self.reward_shaping = reward_shaping
@@ -87,18 +88,25 @@ class GymGoalEnvWrapper(Wrapper):
 
     def step(self, action):
         ob_dict, reward, done, info = self.env.step(action)
+        if (self.reward_shaping == False) and (reward == 0): 
+            done = True
+            print("---Early STOP---") 
         return self._get_obs(ob_dict), reward, done, info
 
     def compute_reward(self, achieved_goal, desired_goal, info):
         velocity_pen = 0.0
-        distance_threshold = 0.01
+        distance_threshold = 0.05
         d = np.linalg.norm(achieved_goal - desired_goal)
         if self.reward_shaping: # dense
             reward = 1 - np.tanh(10 * d)
             if d <= distance_threshold:
                 reward = 10.0
         else: # sparse (-1 or 0)
-            reward = -np.float32(d > distance_threshold)
+            #reward = -np.float32(d > distance_threshold)
+            if d > distance_threshold:
+                reward = -1.0
+            else:
+                reward = 0.0 
        
         return reward - velocity_pen
 

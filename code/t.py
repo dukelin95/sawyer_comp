@@ -42,10 +42,13 @@ env1 = SawyerPrimitiveReach(
         )
 env2 = IKWrapper(env1)
 env3 = GymGoalEnvWrapper(env2)
+env3.reset()
+env3.render()
 
 def view(env, loop):
     for i in range(loop):
-        action = np.array([0.01, 0, 0])
+        action = np.array([0.00, 0.00, 0.0])
+        action[np.random.randint(3)] = 0.01
         obs_dict, r, d, i = env.step(action)
-        print(r)
+        print(action)
         env.render()
