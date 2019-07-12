@@ -19,6 +19,7 @@ class SawyerPrimitiveReach(SawyerEnv):
         self,
         prim_axis = 'x',
         gripper_type="TwoFingerGripper",
+        limits = [0.2, 0.2],
         table_full_size=(0.8, 0.8, 0.8),
         table_friction=(1., 5e-3, 1e-4),
         use_camera_obs=False,
@@ -99,7 +100,7 @@ class SawyerPrimitiveReach(SawyerEnv):
         """
 
         self.prim_axis = prim_axis
-
+        self.limits = limits
         # settings for table top
         self.table_full_size = table_full_size
         self.table_friction = table_friction
@@ -112,17 +113,20 @@ class SawyerPrimitiveReach(SawyerEnv):
 
         # object placement initializer
         self.placement_initializer = placement_initializer
-        limits = [.2, .2]
+
         if self.prim_axis == 'x':
-            self.x_range = limits
+            self.x_range = self.limits
             self.y_range = [0, 0]
+            self.z_range = [0, 0]
 
         elif self.prim_axis == 'y':
             self.x_range = [0, 0]
-            self.y_range = limits
+            self.y_range = self.limits
+            self.z_range = [0, 0]
         else:
-            # TODO add z range in placement_initializer -> will cube fall??
-            raise NotImplementedError
+            self.x_range = [0, 0]
+            self.y_range = [0, 0]
+            self.z_range = self.limits
 
         super().__init__(
             gripper_type=gripper_type,
@@ -169,10 +173,11 @@ class SawyerPrimitiveReach(SawyerEnv):
             initializer=self.placement_initializer,
         )
         self.model.place_objects()
-        pos_arr = np.array((0.56 + np.random.uniform(self.x_range[0], self.x_range[1]),
-                            np.random.uniform(self.y_range[0], self.y_range[1]),
-                            0.8))
-        self.goal = pos_arr
+
+        gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+        self.goal = np.array((gripper_site_pos[0] + np.random.uniform(self.x_range[0], self.x_range[1]),
+                              gripper_site_pos[1] + np.random.uniform(self.y_range[0], self.y_range[1]),
+                              gripper_site_pos[2] + np.random.uniform(self.z_range[0], self.z_range[1])))
 
     def _get_reference(self):
         """
@@ -197,20 +202,18 @@ class SawyerPrimitiveReach(SawyerEnv):
         super()._reset_internal()
 
         # reset positions of objects
-        # TODO adding marker reset
-        pos_arr = np.array((0.56 + np.random.uniform(self.x_range[0], self.x_range[1]),
-                            np.random.uniform(self.y_range[0], self.y_range[1]),
-                            0.8))
-        self.goal = pos_arr
-
-        if self.has_renderer:
-            self.viewer.viewer.add_marker(pos=pos_arr, size=np.array((0.02,0.02,0.02)), label='goal', rgba=[1, 0, 0, 0.5])
         self.model.place_objects()
 
         # reset joint positions
         init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
         init_pos += np.random.randn(init_pos.shape[0]) * 0.02
         self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
+
+        # reset goal (marker)
+        gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
+        self.goal = np.array((gripper_site_pos[0] + np.random.uniform(self.x_range[0], self.x_range[1]),
+                              gripper_site_pos[1] + np.random.uniform(self.y_range[0], self.y_range[1]),
+                              gripper_site_pos[2] + np.random.uniform(self.z_range[0], self.z_range[1])))
 
     def reward(self, action=None):
         """

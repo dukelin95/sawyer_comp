@@ -27,6 +27,8 @@ else:
 
 # env
 policy = 'x'
+limits = [0.2, 0.2]
+table_full_size = (0.8, 0.8, 0.4)
 render = False 
 reward_shaping = False 
 horizon = 100
@@ -48,6 +50,8 @@ env = GymGoalEnvWrapper(
        IKWrapper(
         SawyerPrimitiveReach(
             prim_axis=policy,
+            limits=limits,
+            table_full_size=table_full_size,
             has_renderer=render,
             has_offscreen_renderer=False,
       	    use_camera_obs=False,
