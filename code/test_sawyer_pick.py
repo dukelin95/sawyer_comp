@@ -240,7 +240,7 @@ class SawyerPrimitivePick(SawyerEnv):
             reward (float): the reward
         """
         table_height = self.goal
-        cube_height = self.sim.data.body_xpos[self.cube_body_id][2]
+        cube_height = self.sim.data.body_xpos[self.cube_body_id]
 
         return self.compute_reward(cube_height, table_height)
 
