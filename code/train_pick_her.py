@@ -5,12 +5,13 @@ from ik_wrapper import IKWrapper
 
 import numpy as np
 
-from stable_baselines.ddpg.policies import MlpPolicy
-from stable_baselines.ddpg.noise import OrnsteinUhlenbeckActionNoise
 from stable_baselines import DDPG
 from stable_baselines import HER
 
-from test_sawyer_pick import SawyerPrimitiveLift
+from test_sawyer_pick import SawyerPrimitivePick
+from param_her import *
+from param_pick_env import *
+
 import argparse
 
 parser = argparse.ArgumentParser(description='To log or not to log, no for no log')
@@ -23,28 +24,10 @@ else:
   print("All the saves")
   log = True
 
-
-# env
-render = False
-reward_shaping = False
-horizon = 100
-
-# DDPG
-action_noise = None
-normalize = True
-nb_train_steps = 50
-nb_rollout_steps = 100
-batch_size = 256
-critic_l2_reg = 0.01
-buffer_size=int(.5e6)
-random_exploration=0.2
-
-# how long to train
-total_timesteps = int(0.25e6)
-
 env = GymGoalEnvWrapper(
        IKWrapper(
-        SawyerPrimitiveLift(
+        SawyerPrimitivePick(
+            random_arm_init=random_arm_init,
             has_renderer=render,
             has_offscreen_renderer=False,
       	    use_camera_obs=False,

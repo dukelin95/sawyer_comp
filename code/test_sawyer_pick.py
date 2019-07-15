@@ -10,13 +10,14 @@ from robosuite.models.robots import Sawyer
 from robosuite.models.tasks import TableTopTask, UniformRandomSampler
 
 
-class SawyerPrimitiveLift(SawyerEnv):
+class SawyerPrimitivePick(SawyerEnv):
     """
     This class corresponds to the lifting task for the Sawyer robot arm.
     """
 
     def __init__(
         self,
+        random_arm_init=False,
         gripper_type="TwoFingerGripper",
         table_full_size=(0.8, 0.8, 0.8),
         table_friction=(1., 5e-3, 1e-4),
@@ -95,6 +96,7 @@ class SawyerPrimitiveLift(SawyerEnv):
 
             camera_depth (bool): True if rendering RGB-D, and RGB otherwise.
         """
+        self.random_arm_init = random_arm_init
 
         # settings for table top
         self.table_full_size = table_full_size

@@ -12,6 +12,9 @@ from stable_baselines import HER
 
 # from sawyer_primitive_reach import SawyerPrimitiveReach
 from test_sawyer import SawyerPrimitiveReach
+from param_her import *
+from param_xyz_env import *
+
 import argparse
 
 parser = argparse.ArgumentParser(description='To log or not to log, no for no log')
@@ -23,29 +26,6 @@ if args.log == 'no':
 else:
   print("All the saves")
   log = True
-
-
-# env
-policy = 'x'
-limits = [-0.12, -0.2]
-table_full_size = (0.8, 0.8, 0.8) 
-random_arm_init = False 
-render = False 
-reward_shaping = False 
-horizon = 100
-
-# DDPG
-action_noise = None
-normalize = True
-nb_train_steps = 50
-nb_rollout_steps = 100
-batch_size = 256
-critic_l2_reg = 0.01
-buffer_size=int(1e6)
-random_exploration=0.2
-
-# how long to train
-total_timesteps = int(0.25e6)
 
 env = GymGoalEnvWrapper(
        IKWrapper(

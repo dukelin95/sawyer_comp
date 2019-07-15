@@ -10,28 +10,17 @@ from stable_baselines.ddpg.noise import OrnsteinUhlenbeckActionNoise
 from stable_baselines import HER
 from stable_baselines import DDPG
 
-#from sawyer_primitive_reach import SawyerPrimitiveReach
-
-from test_sawyer import SawyerPrimitiveReach
 import argparse
 
-parser = argparse.ArgumentParser(description='Select pkl file to visualize')
+parser = argparse.ArgumentParser(description='Select pkl file to visualize and env')
+parser.add_argument('envir', metavar='envir', type=str)
 parser.add_argument('path', metavar='path', type=str)
 args = parser.parse_args()
 
-policy = 'x'
-reward_shaping = False
-limits = [-.2, .2]
-table_full_size = (0.8, 0.8, 0.8)
-random_arm_init = False
-
-if reward_shaping:
-    print("Policy {0} with dense rewards".format(policy))
-else:
-    print("Policy {0} with sparse rewards".format(policy))
-env = GymGoalEnvWrapper(
-       IKWrapper(
-        SawyerPrimitiveReach(
+if args.envir == 'xyz':
+    from test_sawyer import SawyerPrimitiveReach
+    from param_xyz_env import *
+    Environment = SawyerPrimitiveReach(
             prim_axis=policy,
             limits=limits,
             table_full_size=table_full_size,
@@ -44,13 +33,39 @@ env = GymGoalEnvWrapper(
             horizon = 100,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
+elif args.envir == 'pick':
+    from test_sawyer_pick import SawyerPrimitivePick
+    from param_pick_env import *
+    Environment = SawyerPrimitivePick(
+            random_arm_init=random_arm_init,
+            has_renderer=True,
+            has_offscreen_renderer=False,
+      	    use_camera_obs=False,
+            use_object_obs=True,
+            reward_shaping=reward_shaping,
+            horizon = 100,
+            control_freq=100,  # control should happen fast enough so that simulation looks smooth
+        )
+else:
+    raise Exception(
+        "Only xyz or pick accepted"
+    )
+
+
+if reward_shaping:
+    print("Policy {0} with dense rewards".format(policy))
+else:
+    print("Policy {0} with sparse rewards".format(policy))
+env = GymGoalEnvWrapper(
+       IKWrapper(
+        Environment
        ),reward_shaping=reward_shaping)
 
 path = args.path
 model = HER.load(path, env=env)
 
 succ = 0
-loop = 100
+loop = 10
 for u in range(loop):
   print("Trial{}".format(u))
   obs = env.reset()
