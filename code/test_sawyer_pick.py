@@ -9,6 +9,9 @@ from robosuite.models.objects import BoxObject
 from robosuite.models.robots import Sawyer
 from robosuite.models.tasks import TableTopTask, UniformRandomSampler
 
+from robosuite.controllers import SawyerIKController
+import robosuite
+import os
 
 class SawyerPrimitivePick(SawyerEnv):
     """
@@ -102,6 +105,8 @@ class SawyerPrimitivePick(SawyerEnv):
         self.table_full_size = table_full_size
         self.table_friction = table_friction
 
+        self.goal = np.array((0, 0, self.table_full_size[2]))
+
         # whether to use ground-truth object states
         self.use_object_obs = use_object_obs
 
@@ -119,6 +124,10 @@ class SawyerPrimitivePick(SawyerEnv):
                 z_rotation=True,
             )
 
+        self.controller = SawyerIKController(
+            bullet_data_path=os.path.join(robosuite.models.assets_root, "bullet_data"),
+            robot_jpos_getter=self._robot_jpos_getter,
+        )
         super().__init__(
             gripper_type=gripper_type,
             gripper_visualization=gripper_visualization,
@@ -196,10 +205,21 @@ class SawyerPrimitivePick(SawyerEnv):
         # reset positions of objects
         self.model.place_objects()
 
-        # reset joint positions
-        init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
-        init_pos += np.random.randn(init_pos.shape[0]) * 0.02
+        if self.random_arm_init:
+            # random initialization of arm
+            constant_quat = np.array([-0.01704371, -0.99972409, 0.00199679, -0.01603944])
+            target_position = np.array([0.58038172, -0.01562932, 0.90211762]) \
+                              + np.random.uniform(-0.02, 0.02, 3)
+
+            joint_list = self.controller.inverse_kinematics(target_position, constant_quat)
+            init_pos = np.array(joint_list)
+        else:
+            init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
+            init_pos += np.random.randn(init_pos.shape[0]) * 0.02
         self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
+
+    def _robot_jpos_getter(self):
+        return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])
 
     def reward(self, action=None):
         """
@@ -219,39 +239,14 @@ class SawyerPrimitivePick(SawyerEnv):
         Returns:
             reward (float): the reward
         """
-        reward = 0.
+        table_height = self.goal
+        cube_height = self.sim.data.body_xpos[self.cube_body_id][2]
 
-        # sparse completion reward
-        if self._check_success():
-            reward = 1.0
+        return self.compute_reward(cube_height, table_height)
 
-        # use a shaping reward
-        if self.reward_shaping:
-
-            # reaching reward
-            cube_pos = self.sim.data.body_xpos[self.cube_body_id]
-            gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
-            dist = np.linalg.norm(gripper_site_pos - cube_pos)
-            reaching_reward = 1 - np.tanh(10.0 * dist)
-            reward += reaching_reward
-
-            # grasping reward
-            touch_left_finger = False
-            touch_right_finger = False
-            for i in range(self.sim.data.ncon):
-                c = self.sim.data.contact[i]
-                if c.geom1 in self.l_finger_geom_ids and c.geom2 == self.cube_geom_id:
-                    touch_left_finger = True
-                if c.geom1 == self.cube_geom_id and c.geom2 in self.l_finger_geom_ids:
-                    touch_left_finger = True
-                if c.geom1 in self.r_finger_geom_ids and c.geom2 == self.cube_geom_id:
-                    touch_right_finger = True
-                if c.geom1 == self.cube_geom_id and c.geom2 in self.r_finger_geom_ids:
-                    touch_right_finger = True
-            if touch_left_finger and touch_right_finger:
-                reward += 0.25
-
-        return reward
+    def compute_reward(self, achieved_goal, desired_goal, info=None):
+        # -1 if cube is below, 0 if cube is above
+        return -np.float32(achieved_goal[2] < desired_goal[2] + 0.04)
 
     def _get_observation(self):
         """

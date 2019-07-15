@@ -90,21 +90,7 @@ class GymGoalEnvWrapper(Wrapper):
         ob_dict, reward, done, info = self.env.step(action)
         return self._get_obs(ob_dict), reward, done, info
 
-    def compute_reward(self, achieved_goal, desired_goal, info):
-        velocity_pen = 0.0
-        distance_threshold = 0.05
-        d = np.linalg.norm(achieved_goal - desired_goal)
-        if self.reward_shaping: # dense
-            reward = 1 - np.tanh(10 * d)
-            if d <= distance_threshold:
-                reward = 10.0
-        else: # sparse (-1 or 0)
-            #reward = -np.float32(d > distance_threshold)
-            if d > distance_threshold:
-                reward = -1.0
-            else:
-                reward = 0.0 
-       
-        return reward - velocity_pen
+    def compute_reward(self, achieved_goal, desired_goal, info=None):
+        return self.env.compute_reward(achieved_goal, desired_goal, None)
 
 
