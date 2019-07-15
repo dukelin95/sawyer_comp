@@ -20,19 +20,9 @@ import argparse
 render = True
 
 policy = 'x'
-limits = [0.2, 0.2] 
-table_full_size = (0.8, 0.8, 0.4)
-random_arm_init=False
-
-nb_train_steps = 25
-nb_rollout_steps = 50
-batch_size = 64
-critic_l2_reg = 0.01
-buffer_size=int(1e6)
-normalize = True
-
-action_noise=None
-total_timesteps = int(5e3)
+limits = [-0.2, 0.2] 
+table_full_size = (0.8, 0.8, 0.8)
+random_arm_init=True
 
 env1 = SawyerPrimitiveReach(
             prim_axis=policy,
@@ -50,6 +40,15 @@ env2 = IKWrapper(env1)
 env3 = GymGoalEnvWrapper(env2)
 env3.reset()
 env3.render()
+
+def init(env3, loop):
+   for i in range(loop):
+      o = env3.reset()
+      env3.viewer.viewer.add_marker(pos=env3.goal, size=np.array((0.02,0.02,0.02)), label='goal', rgba=[1, 0, 0, 0.5])
+      env3.render()
+      for j in range(5):
+         pass
+     
 
 def find(env1, env3, loop):
     p = []

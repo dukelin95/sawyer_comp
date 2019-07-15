@@ -21,7 +21,7 @@ args = parser.parse_args()
 
 policy = 'x'
 reward_shaping = False
-limits = [-.15, -.25]
+limits = [-.2, .2]
 table_full_size = (0.8, 0.8, 0.8)
 random_arm_init = False
 
@@ -62,6 +62,6 @@ for u in range(loop):
     env.viewer.viewer.add_marker(pos=env.goal, size=np.array((0.02,0.02,0.02)), label='goal', rgba=[1, 0, 0, 0.5])
     if env.reward() == 0.0: 
        succ = succ + 1
-       print(obs['achieved_goal'])
+       print('Success: {}'.format(obs['achieved_goal']))
     env.render()
 print('{0}/{1}'.format(succ, loop))

@@ -27,9 +27,9 @@ else:
 
 # env
 policy = 'x'
-limits = [0.2, 0.2]
+limits = [-0.12, -0.2]
 table_full_size = (0.8, 0.8, 0.8) 
-random_arm_init = True 
+random_arm_init = False 
 render = False 
 reward_shaping = False 
 horizon = 100
@@ -41,7 +41,7 @@ nb_train_steps = 50
 nb_rollout_steps = 100
 batch_size = 256
 critic_l2_reg = 0.01
-buffer_size=int(.5e6)
+buffer_size=int(1e6)
 random_exploration=0.2
 
 # how long to train
