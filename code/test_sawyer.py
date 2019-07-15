@@ -244,7 +244,7 @@ class SawyerPrimitiveReach(SawyerEnv):
 
         The dense reward has one component.
 
-            Reaching: in [0, 1], to encourage the arm to reach the cube
+            Reaching: in [0, 1], to encourage the arm to reach the marker
 
         The sparse reward only consists of the lifting component.
 
@@ -257,11 +257,12 @@ class SawyerPrimitiveReach(SawyerEnv):
      #   velocity_pen = np.linalg(np.array(
      #       [self.sim.data.qvel[x] for x in self._ref_joint_vel_indexes]
      #  ))
-        cube_pos = self.goal
+        marker_pos = self.goal
         gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
 
-        return self.compute_reward(gripper_site_pos, cube_pos, None)
+        return self.compute_reward(gripper_site_pos, marker_pos, None)
 
+    # for goalenv wrapper
     def compute_reward(self, achieved_goal, desired_goal, info=None):
         velocity_pen = 0.0
 
@@ -278,6 +279,21 @@ class SawyerPrimitiveReach(SawyerEnv):
                 reward = 0.0
 
         return reward - velocity_pen
+
+    # for goalenv wrapper
+    def get_goalenv_dict(self, obs_dict):
+        # using only object-state and robot-state
+        ob_lst = []
+        di = {}
+        for key in obs_dict:
+            if key in ["robot-state", "object-state"]:
+                ob_lst.append(obs_dict[key])
+
+        di['observation'] = np.concatenate(ob_lst)
+        di['desired_goal'] = obs_dict['object-state'][0:3]
+        di['achieved_goal'] = obs_dict['robot-state'][23:26]
+
+        return di
 
     def _get_observation(self):
         """
@@ -309,23 +325,11 @@ class SawyerPrimitiveReach(SawyerEnv):
         # TODO change this to marker pos
         # low-level object information
         if self.use_object_obs:
-            # position and rotation of object
-            # cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
-            cube_pos = self.goal
-            # cube_quat = convert_quat(
-            #     np.array(self.sim.data.body_xquat[self.cube_body_id]), to="xyzw"
-            # )
-            di["cube_pos"] = cube_pos
-            # di["cube_quat"] = cube_quat
-
             gripper_site_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
-            di["gripper_to_cube"] = gripper_site_pos - cube_pos
+            di["gripper_to_marker"] = gripper_site_pos - self.goal
 
-            # di["object-state"] = np.concatenate(
-            #     [cube_pos, cube_quat, di["gripper_to_cube"]]
-            # )
             di["object-state"] = np.concatenate(
-                [cube_pos, di["gripper_to_cube"]]
+                [self.goal, di["gripper_to_marker"]]
             )
 
         return di

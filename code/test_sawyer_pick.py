@@ -244,9 +244,25 @@ class SawyerPrimitivePick(SawyerEnv):
 
         return self.compute_reward(cube_height, table_height)
 
+    # for goalenv wrapper
     def compute_reward(self, achieved_goal, desired_goal, info=None):
         # -1 if cube is below, 0 if cube is above
         return -np.float32(achieved_goal[2] < desired_goal[2] + 0.04)
+
+    # for goalenv wrapper
+    def get_goalenv_dict(self, obs_dict):
+        # using only object-state and robot-state
+        ob_lst = []
+        di = {}
+        for key in obs_dict:
+            if key in ["robot-state", "object-state"]:
+                ob_lst.append(obs_dict[key])
+
+        di['observation'] = np.concatenate(ob_lst)
+        di['desired_goal'] = self.goal
+        di['achieved_goal'] = obs_dict['object-state'][0:3]
+
+        return di
 
     def _get_observation(self):
         """
