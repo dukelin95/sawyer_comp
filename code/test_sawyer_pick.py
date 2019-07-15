@@ -12,6 +12,7 @@ from robosuite.models.tasks import TableTopTask, UniformRandomSampler
 from robosuite.controllers import SawyerIKController
 import robosuite
 import os
+from gym import spaces
 
 class SawyerPrimitivePick(SawyerEnv):
     """
@@ -123,6 +124,10 @@ class SawyerPrimitivePick(SawyerEnv):
                 ensure_object_boundary_in_range=False,
                 z_rotation=True,
             )
+        low = -np.array([.01, .01, .01, 0])
+        high = np.array([.01, .01, .01, 1])
+
+        self.action_space = spaces.Box(low=low, high=high)
 
         self.controller = SawyerIKController(
             bullet_data_path=os.path.join(robosuite.models.assets_root, "bullet_data"),

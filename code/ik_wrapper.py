@@ -84,7 +84,7 @@ class IKWrapper(Wrapper):
         input_1 = self._make_input(np.concatenate((action[:3], constant_quat)), self.env._right_hand_quat)
         if self.env.mujoco_robot.name == "sawyer":
             velocities = self.controller.get_control(**input_1)
-            low_action = np.concatenate([velocities, np.ones(1)])
+            low_action = np.concatenate([velocities, action[7:]])
         else:
             raise Exception(
                 "Only Sawyer robot environments supported for IK "

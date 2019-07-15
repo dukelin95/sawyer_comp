@@ -40,10 +40,7 @@ class GymGoalEnvWrapper(Wrapper):
            observation=spaces.Box(low=low, high=high,),
         ))
 
-        low = -np.array([.01, .01, .01])
-        high = np.array([.01, .01, .01])
-
-        self.action_space = spaces.Box(low=low, high=high)
+        self.action_space = self.env.action_space
 
     def _flatten_obs(self, obs_dict, verbose=False):
         """
