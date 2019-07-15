@@ -66,6 +66,9 @@ class GymGoalEnvWrapper(Wrapper):
 
     def step(self, action):
         ob_dict, reward, done, info = self.env.step(action)
+        if reward == 0:
+            print("early termination")
+            done = True
         return self.env.get_goalenv_dict(ob_dict), reward, done, info
 
     def compute_reward(self, achieved_goal, desired_goal, info=None):
