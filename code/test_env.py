@@ -14,6 +14,7 @@ from stable_baselines import HER
 from utils import HERGoalEnvWrapper
 # from sawyer_primitive_reach import SawyerPrimitiveReach
 from test_sawyer import SawyerPrimitiveReach
+from test_sawyer_pick import SawyerPrimitivePick
 import argparse
 
 
@@ -24,10 +25,10 @@ limits = [-0.2, 0.2]
 table_full_size = (0.8, 0.8, 0.8)
 random_arm_init=True
 
-env1 = SawyerPrimitiveReach(
-            prim_axis=policy,
-            limits=limits,
-            table_full_size=table_full_size,
+env1 = SawyerPrimitivePick(
+            #prim_axis=policy,
+            #limits=limits,
+            #table_full_size=table_full_size,
             random_arm_init=random_arm_init,
             has_renderer=render,
             has_offscreen_renderer=False,

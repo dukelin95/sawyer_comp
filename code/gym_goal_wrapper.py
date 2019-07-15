@@ -88,9 +88,6 @@ class GymGoalEnvWrapper(Wrapper):
 
     def step(self, action):
         ob_dict, reward, done, info = self.env.step(action)
-        if (self.reward_shaping == False) and (reward == 0): 
-            done = True
-            print("---Early STOP---") 
         return self._get_obs(ob_dict), reward, done, info
 
     def compute_reward(self, achieved_goal, desired_goal, info):

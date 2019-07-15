@@ -9,4 +9,4 @@ buffer_size=int(1e6)
 random_exploration=0.2
 
 # how long to train
-total_timesteps = int(0.25e6)
+total_timesteps = int(1e6)
