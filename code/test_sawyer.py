@@ -217,13 +217,13 @@ class SawyerPrimitiveReach(SawyerEnv):
 
         if self.random_arm_init:
             # random initialization of arm
-            # random initialization of arm
             constant_quat = np.array([-0.01704371, -0.99972409, 0.00199679, -0.01603944])
             target_position = np.array([0.58038172, -0.01562932, 0.90211762]) \
                               + np.random.uniform(-0.02, 0.02, 3)
             self.controller.sync_ik_robot(self._robot_jpos_getter())
             joint_list = self.controller.inverse_kinematics(target_position, constant_quat)
             init_pos = np.array(joint_list)
+
 
         else:
             init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
