@@ -124,7 +124,7 @@ class SawyerPrimitivePick(SawyerEnv):
                 ensure_object_boundary_in_range=False,
                 z_rotation=True,
             )
-        low = -np.array([.01, .01, .01, 0])
+        low = -np.array([.01, .01, .01, 1])
         high = np.array([.01, .01, .01, 1])
 
         self.action_space = spaces.Box(low=low, high=high)
