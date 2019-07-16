@@ -35,7 +35,7 @@ env = GymGoalEnvWrapper(
             reward_shaping=reward_shaping,
             horizon = horizon,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
-        )
+        ), gripper = True
     ))
 
 # the noise objects for DDPG

@@ -221,6 +221,7 @@ class SawyerPrimitiveReach(SawyerEnv):
             
             joint_list = self.controller.inverse_kinematics(target_position, constant_quat)
             init_pos = np.array(joint_list)
+            print(init_pos)
         else:
             init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
             init_pos += np.random.randn(init_pos.shape[0]) * 0.02

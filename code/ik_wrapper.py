@@ -14,7 +14,7 @@ from robosuite.wrappers import Wrapper
 class IKWrapper(Wrapper):
     env = None
 
-    def __init__(self, env, action_repeat=1):
+    def __init__(self, env, action_repeat=1, gripper=False):
         """
         Initializes the inverse kinematics wrapper.
         This wrapper allows for controlling the robot through end effector
@@ -43,6 +43,7 @@ class IKWrapper(Wrapper):
             )
 
         self.action_repeat = action_repeat
+        self.gripper = gripper
 
     def set_robot_joint_positions(self, positions):
         """
@@ -80,11 +81,15 @@ class IKWrapper(Wrapper):
                 *: Controls for gripper actuation.
 
         """
+        if self.gripper:
+            gripper_action = action[3:]
+        else:
+            gripper_action = np.ones(1) 
         constant_quat = np.array([0, 0, 0, 1])
         input_1 = self._make_input(np.concatenate((action[:3], constant_quat)), self.env._right_hand_quat)
         if self.env.mujoco_robot.name == "sawyer":
             velocities = self.controller.get_control(**input_1)
-            low_action = np.concatenate([velocities, action[7:]])
+            low_action = np.concatenate([velocities, gripper_action])
         else:
             raise Exception(
                 "Only Sawyer robot environments supported for IK "

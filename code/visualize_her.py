@@ -33,6 +33,7 @@ if args.envir == 'xyz':
             horizon = 100,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
+    gripper = False
 elif args.envir == 'pick':
     from test_sawyer_pick import SawyerPrimitivePick
     from param_pick_env import *
@@ -46,6 +47,7 @@ elif args.envir == 'pick':
             horizon = 100,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
+    gripper = True
 else:
     raise Exception(
         "Only xyz or pick accepted"
@@ -58,8 +60,8 @@ else:
     print("Policy {0} with sparse rewards".format(policy))
 env = GymGoalEnvWrapper(
        IKWrapper(
-        Environment
-       ),reward_shaping=reward_shaping)
+        Environment, gripper=gripper
+       ))
 
 path = args.path
 model = HER.load(path, env=env)

@@ -23,12 +23,12 @@ render = True
 policy = 'x'
 limits = [-0.2, 0.2] 
 table_full_size = (0.8, 0.8, 0.8)
-random_arm_init=True
+random_arm_init=False
 
-env1 = SawyerPrimitivePick(
-            #prim_axis=policy,
-            #limits=limits,
-            #table_full_size=table_full_size,
+env1 = SawyerPrimitiveReach(
+            prim_axis=policy,
+            limits=limits,
+            table_full_size=table_full_size,
             random_arm_init=random_arm_init,
             has_renderer=render,
             has_offscreen_renderer=False,
@@ -37,7 +37,7 @@ env1 = SawyerPrimitivePick(
             horizon = 500,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
-env2 = IKWrapper(env1)
+env2 = IKWrapper(env1, gripper=False)
 env3 = GymGoalEnvWrapper(env2)
 env3.reset()
 env3.render()
