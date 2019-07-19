@@ -9,7 +9,7 @@ from stable_baselines import DDPG
 from stable_baselines import HER
 
 from test_sawyer_pick import SawyerPrimitivePick
-from param_her import *
+from param_her_pick import *
 from param_pick_env import *
 
 import argparse
@@ -36,7 +36,7 @@ env = GymGoalEnvWrapper(
             horizon = horizon,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         ), gripper = True
-    ))
+    ), early=early)
 
 # the noise objects for DDPG
 #n_actions = env.action_space.shape[-1]
@@ -66,6 +66,7 @@ start = time.time()
 
 model.learn(total_timesteps=total_timesteps, log_interval=1)
 
+policy = 'pick'
 if log :
   model.save("pkl/{}".format(suff))
   print("Saved as {0}, trained {1} primitive policy for {2} timesteps in {3}".format(suff, policy, total_timesteps, time.strftime('%H:%M:%S', time.gmtime(time.time()-start))))

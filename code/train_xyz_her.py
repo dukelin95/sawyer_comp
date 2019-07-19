@@ -12,7 +12,7 @@ from stable_baselines import HER
 
 # from sawyer_primitive_reach import SawyerPrimitiveReach
 from test_sawyer import SawyerPrimitiveReach
-from param_her import *
+from param_her_xyz import *
 from param_xyz_env import *
 
 import argparse
@@ -42,7 +42,7 @@ env = GymGoalEnvWrapper(
             horizon = horizon,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
-    ))
+    ),early=early)
 
 # the noise objects for DDPG
 #n_actions = env.action_space.shape[-1]

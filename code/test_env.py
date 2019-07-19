@@ -25,10 +25,10 @@ limits = [-0.2, 0.2]
 table_full_size = (0.8, 0.8, 0.8)
 random_arm_init=False
 
-env1 = SawyerPrimitiveReach(
-            prim_axis=policy,
-            limits=limits,
-            table_full_size=table_full_size,
+env1 = SawyerPrimitivePick(
+#            prim_axis=policy,
+#            limits=limits,
+#            table_full_size=table_full_size,
             random_arm_init=random_arm_init,
             has_renderer=render,
             has_offscreen_renderer=False,
@@ -37,7 +37,7 @@ env1 = SawyerPrimitiveReach(
             horizon = 500,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
-env2 = IKWrapper(env1, gripper=False)
+env2 = IKWrapper(env1, gripper=True)
 env3 = GymGoalEnvWrapper(env2)
 env3.reset()
 env3.render()
@@ -69,9 +69,7 @@ def init(env3, loop):
       o = env3.reset()
       env3.viewer.viewer.add_marker(pos=env3.goal, size=np.array((0.02,0.02,0.02)), label='goal', rgba=[1, 0, 0, 0.5])
       env3.render()
-      for j in range(5):
-         pass
-     
+      print(o['achieved_goal'])     
 
 def find(env1, env3, loop):
     p = []
@@ -86,9 +84,10 @@ def find(env1, env3, loop):
 
 def view(env, loop, action=None):
     for i in range(loop):
+        #if True:
         if action is None:
-           action = np.array([0.00, 0.00, 0.0])
-           action[np.random.randint(3)] = 0.01
+           action = np.array([0.0, 0.0, 0.0, np.random.uniform(-1.1)])
+#           action[np.random.randint(3)] = 0.01
         obs_dict, r, d, i = env.step(action)
         env3.viewer.viewer.add_marker(pos=env3.goal, size=np.array((0.02,0.02,0.02)), label='goal', rgba=[1, 0, 0, 0.5])
         print(action)

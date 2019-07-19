@@ -30,14 +30,14 @@ render = False
 
 policy = 'x'
 
-nb_train_steps = 250
-nb_rollout_steps = 500
+nb_train_steps = 50
+nb_rollout_steps = 100
 batch_size = 256
 critic_l2_reg = 0.01
 buffer_size=int(1e6)
 normalize=True
 
-total_timesteps = int(0.5e6)
+total_timesteps = int(0.8e3)
 
 env = GymWrapper(
         SawyerPrimitiveReach(
@@ -46,7 +46,7 @@ env = GymWrapper(
             has_offscreen_renderer=False,
       	    use_camera_obs=False,
             use_object_obs=True,
-            horizon = 500,
+            horizon = 100,
             control_freq=100,  # control should happen fast enough so that simulation looks smooth
         )
     )
@@ -75,7 +75,7 @@ model = DDPG('MlpPolicy', env, verbose=2, render=render,
 
 start = time.time()
 
-model.learn(total_timesteps=total_timesteps)
+model.learn(total_timesteps=total_timesteps, log_interval=1)
 
 if log :
   model.save("pkl/{}".format(suff))

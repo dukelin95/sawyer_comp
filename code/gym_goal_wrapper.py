@@ -12,7 +12,7 @@ from robosuite.wrappers import Wrapper
 class GymGoalEnvWrapper(Wrapper):
     env = None
  
-    def __init__(self, env, keys=None):
+    def __init__(self, env, keys=None, early=False):
         """
         Initializes the Gym wrapper.
 
@@ -41,6 +41,7 @@ class GymGoalEnvWrapper(Wrapper):
         ))
 
         self.action_space = self.env.action_space
+        self.early = early
 
     def _flatten_obs(self, obs_dict, verbose=False):
         """
@@ -63,7 +64,7 @@ class GymGoalEnvWrapper(Wrapper):
 
     def step(self, action):
         ob_dict, reward, done, info = self.env.step(action)
-        if reward == 0:
+        if reward == 0 and self.early:
             print("early termination")
             done = True
         return self.env.get_goalenv_dict(ob_dict), reward, done, info

@@ -17,6 +17,8 @@ parser.add_argument('envir', metavar='envir', type=str)
 parser.add_argument('path', metavar='path', type=str)
 args = parser.parse_args()
 
+early = False
+
 if args.envir == 'xyz':
     from test_sawyer import SawyerPrimitiveReach
     from param_xyz_env import *
@@ -54,14 +56,14 @@ else:
     )
 
 
-if reward_shaping:
-    print("Policy {0} with dense rewards".format(policy))
-else:
-    print("Policy {0} with sparse rewards".format(policy))
+#if reward_shaping:
+#    print("Policy {0} with dense rewards".format(policy))
+#else:
+#    print("Policy {0} with sparse rewards".format(policy))
 env = GymGoalEnvWrapper(
        IKWrapper(
         Environment, gripper=gripper
-       ))
+       ), early=early)
 
 path = args.path
 model = HER.load(path, env=env)
@@ -80,5 +82,6 @@ for u in range(loop):
     if env.reward() == 0.0: 
        succ = succ + 1
        print('Success: {}'.format(obs['achieved_goal']))
+#       break
     env.render()
 print('{0}/{1}'.format(succ, loop))

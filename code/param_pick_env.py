@@ -1,4 +1,5 @@
 random_arm_init = False
-render = False
+render =False 
 reward_shaping = False
-horizon = 100
+horizon = 50
+early=False
