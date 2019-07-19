@@ -23,7 +23,7 @@ render = True
 policy = 'x'
 limits = [-0.2, 0.2] 
 table_full_size = (0.8, 0.8, 0.8)
-random_arm_init=False
+random_arm_init=True
 
 env1 = SawyerPrimitivePick(
 #            prim_axis=policy,
@@ -69,7 +69,7 @@ def init(env3, loop):
       o = env3.reset()
       env3.viewer.viewer.add_marker(pos=env3.goal, size=np.array((0.02,0.02,0.02)), label='goal', rgba=[1, 0, 0, 0.5])
       env3.render()
-      print(o['achieved_goal'])     
+      print(env1.sim.data.site_xpos[env1.eef_site_id])     
 
 def find(env1, env3, loop):
     p = []

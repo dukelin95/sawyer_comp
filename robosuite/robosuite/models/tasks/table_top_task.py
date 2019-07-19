@@ -70,8 +70,8 @@ class TableTopTask(Task):
             self.objects[i].set("quat", array_to_string(quat_arr[i]))
 
     def place_under_EF(self, arm_position):
-        pos_arr = np.array(arm_position[0], arm_position[1], 0)
-        _, quat_arr = self.initializer.sample()
+        pos_arr = [np.array((arm_position[0], arm_position[1],0))]
+        pos2, quat_arr = self.initializer.sample()
         for i in range(len(self.objects)):
-            self.objects[i].set("pos", array_to_string(pos_arr[i]))
+            self.objects[i].set("pos", array_to_string(pos_arr[i] + np.array((0, 0, pos2[i][2]))))
             self.objects[i].set("quat", array_to_string(quat_arr[i]))

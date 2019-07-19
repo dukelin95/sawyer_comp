@@ -82,6 +82,6 @@ for u in range(loop):
     if env.reward() == 0.0: 
        succ = succ + 1
        print('Success: {}'.format(obs['achieved_goal']))
-#       break
+       break
     env.render()
 print('{0}/{1}'.format(succ, loop))
