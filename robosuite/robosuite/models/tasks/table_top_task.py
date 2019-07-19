@@ -1,6 +1,6 @@
 from robosuite.models.tasks import Task, UniformRandomSampler
 from robosuite.utils.mjcf_utils import new_joint, array_to_string
-
+import numpy as np
 
 class TableTopTask(Task):
     """
@@ -65,6 +65,13 @@ class TableTopTask(Task):
     def place_objects(self):
         """Places objects randomly until no collisions or max iterations hit."""
         pos_arr, quat_arr = self.initializer.sample()
+        for i in range(len(self.objects)):
+            self.objects[i].set("pos", array_to_string(pos_arr[i]))
+            self.objects[i].set("quat", array_to_string(quat_arr[i]))
+
+    def place_under_EF(self, arm_position):
+        pos_arr = np.array(arm_position[0], arm_position[1], 0)
+        _, quat_arr = self.initializer.sample()
         for i in range(len(self.objects)):
             self.objects[i].set("pos", array_to_string(pos_arr[i]))
             self.objects[i].set("quat", array_to_string(quat_arr[i]))

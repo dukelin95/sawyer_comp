@@ -5,29 +5,34 @@ from robosuite.utils.transform_utils import convert_quat
 from robosuite.environments.sawyer import SawyerEnv
 
 from robosuite.models.arenas import TableArena
-from robosuite.models.objects import BoxObject
-from robosuite.models.robots import Sawyer
-from robosuite.models.tasks import TableTopTask, UniformRandomSampler
+from robosuite.models.objects import MujocoXMLObject
+from robosuite.models.tasks import TableTopTask, UniformRandomSampler, ObjectPositionSampler
 
 from robosuite.controllers import SawyerIKController
 import robosuite
+import pybullet as p
 import os
+from os.path import join as pjoin
 from gym import spaces
 
-class SawyerPrimitivePick(SawyerEnv):
+class SawyerPrimitiveReach(SawyerEnv):
     """
-    This class corresponds to the lifting task for the Sawyer robot arm.
+    This class corresponds to the a primitive policy for the reach task on the Sawyer robot arm.
+
+    Uniform random sample on x, y, or z axis in range of 20 to 60 cm for x and y, 0 to 40 cm for z (center of table)
     """
 
     def __init__(
         self,
-        random_arm_init=False,
         gripper_type="TwoFingerGripper",
+        lower_range = [-0.2, -0.2, -0.1],
+        upper_range = [0.2, 0.2, 0.2],
+        random_arm_init = False,
         table_full_size=(0.8, 0.8, 0.8),
         table_friction=(1., 5e-3, 1e-4),
-        use_camera_obs=True,
+        use_camera_obs=False,
         use_object_obs=True,
-        reward_shaping=False,
+        reward_shaping=True,
         placement_initializer=None,
         gripper_visualization=False,
         use_indicator_object=False,
@@ -45,6 +50,7 @@ class SawyerPrimitivePick(SawyerEnv):
     ):
         """
         Args:
+            prim_axis (str): which axis is being explored
 
             gripper_type (str): type of gripper, used to instantiate
                 gripper models from gripper factory.
@@ -100,13 +106,13 @@ class SawyerPrimitivePick(SawyerEnv):
 
             camera_depth (bool): True if rendering RGB-D, and RGB otherwise.
         """
+        self.upper_range = upper_range
+        self.lower_range = lower_range
         self.random_arm_init = random_arm_init
-
+        self.distance_threshold = 0.05
         # settings for table top
         self.table_full_size = table_full_size
         self.table_friction = table_friction
-
-        self.goal = np.array((0, 0, self.table_full_size[2]))
 
         # whether to use ground-truth object states
         self.use_object_obs = use_object_obs
@@ -115,24 +121,18 @@ class SawyerPrimitivePick(SawyerEnv):
         self.reward_shaping = reward_shaping
 
         # object placement initializer
-        if placement_initializer:
-            self.placement_initializer = placement_initializer
-        else:
-            self.placement_initializer = UniformRandomSampler(
-                x_range=[-0.00, 0.00],
-                y_range=[-0.00, 0.00],
-                ensure_object_boundary_in_range=False,
-                z_rotation=[-np.pi, np.pi],
-            )
-        low = -np.array([.01, .01, .01, 1])
-        high = np.array([.01, .01, .01, 1])
+        self.placement_initializer = placement_initializer
+
+
+        low = -np.array([.01, .01, .01])
+        high = np.array([.01, .01, .01])
 
         self.action_space = spaces.Box(low=low, high=high)
 
         self.controller = SawyerIKController(
-            bullet_data_path=os.path.join(robosuite.models.assets_root, "bullet_data"),
-            robot_jpos_getter=self._robot_jpos_getter,
-        )
+                bullet_data_path=os.path.join(robosuite.models.assets_root, "bullet_data"),
+                robot_jpos_getter=self._robot_jpos_getter,
+            )
         super().__init__(
             gripper_type=gripper_type,
             gripper_visualization=gripper_visualization,
@@ -168,13 +168,7 @@ class SawyerPrimitivePick(SawyerEnv):
         # The sawyer robot has a pedestal, we want to align it with the table
         self.mujoco_arena.set_origin([0.16 + self.table_full_size[0] / 2, 0, 0])
 
-        # initialize objects of interest
-        cube = BoxObject(
-            size_min=[0.020, 0.020, 0.020],  # [0.015, 0.015, 0.015],
-            size_max=[0.022, 0.022, 0.022],  # [0.018, 0.018, 0.018])
-            rgba=[1, 0, 0, 1],
-        )
-        self.mujoco_objects = OrderedDict([("cube", cube)])
+        self.mujoco_objects = OrderedDict([])
 
         # task includes arena, robot, and objects of interest
         self.model = TableTopTask(
@@ -185,7 +179,6 @@ class SawyerPrimitivePick(SawyerEnv):
         )
         self.model.place_objects()
 
-
     def _get_reference(self):
         """
         Sets up references to important components. A reference is typically an
@@ -193,14 +186,14 @@ class SawyerPrimitivePick(SawyerEnv):
         in a flatten array, which is how MuJoCo stores physical simulation data.
         """
         super()._get_reference()
-        self.cube_body_id = self.sim.model.body_name2id("cube")
+        # self.cube_body_id = self.sim.model.body_name2id("cube")
         self.l_finger_geom_ids = [
             self.sim.model.geom_name2id(x) for x in self.gripper.left_finger_geoms
         ]
         self.r_finger_geom_ids = [
             self.sim.model.geom_name2id(x) for x in self.gripper.right_finger_geoms
         ]
-        self.cube_geom_id = self.sim.model.geom_name2id("cube")
+        # self.cube_geom_id = self.sim.model.geom_name2id("cube")
 
     def _reset_internal(self):
         """
@@ -208,35 +201,38 @@ class SawyerPrimitivePick(SawyerEnv):
         """
         super()._reset_internal()
 
-
+        # reset positions of objects
+        self.model.place_objects()
 
         if self.random_arm_init:
             # random initialization of arm
             constant_quat = np.array([-0.01704371, -0.99972409, 0.00199679, -0.01603944])
             target_position = np.array([0.58038172, -0.01562932, 0.90211762]) \
                               + np.random.uniform(-0.02, 0.02, 3)
-
-            # reset positions of objects to under arm
-            self.model.place_under_EF(target_position)
             self.controller.sync_ik_robot(self._robot_jpos_getter())
             joint_list = self.controller.inverse_kinematics(target_position, constant_quat)
             init_pos = np.array(joint_list)
+
+
         else:
-            # reset positions of objects
-            self.model.place_objects()
             init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
-            # init_pos += np.random.randn(init_pos.shape[0]) * 0.02
-
-
-            
+            init_pos += np.random.randn(init_pos.shape[0]) * 0.02
         self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
+
+    def reset(self):
+        self._destroy_viewer()
+        self._reset_internal()
+        self.sim.forward()
         
-        self.sim.data.qpos[
-                self._ref_joint_gripper_actuator_indexes
-            ] = np.array([-0.0115, 0.0115])
+        # reset goal (marker)
+        gripper_site_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
+        distance = np.random.uniform(self.lower_range, self.upper_range)
+        while np.linalg.norm(distance) <= (self.distance_threshold * 1.75):
+            distance = np.random.uniform(self.lower_range, self.upper_range)
 
+        self.goal = gripper_site_pos + distance
 
-
+        return self._get_observation()
 
     def _robot_jpos_getter(self):
         return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])
@@ -245,11 +241,9 @@ class SawyerPrimitivePick(SawyerEnv):
         """
         Reward function for the task.
 
-        The dense reward has three components.
+        The dense reward has one component.
 
-            Reaching: in [0, 1], to encourage the arm to reach the cube
-            Grasping: in {0, 0.25}, non-zero if arm is grasping the cube
-            Lifting: in {0, 1}, non-zero if arm has lifted the cube
+            Reaching: in [0, 1], to encourage the arm to reach the marker
 
         The sparse reward only consists of the lifting component.
 
@@ -259,15 +253,31 @@ class SawyerPrimitivePick(SawyerEnv):
         Returns:
             reward (float): the reward
         """
-        table_height = self.goal
-        cube_height = self.sim.data.body_xpos[self.cube_body_id]
+     #   velocity_pen = np.linalg(np.array(
+     #       [self.sim.data.qvel[x] for x in self._ref_joint_vel_indexes]
+     #  ))
+        marker_pos = self.goal
+        gripper_site_pos = self.sim.data.site_xpos[self.eef_site_id]
 
-        return self.compute_reward(cube_height, table_height)
+        return self.compute_reward(gripper_site_pos, marker_pos, None)
 
     # for goalenv wrapper
     def compute_reward(self, achieved_goal, desired_goal, info=None):
-        # -1 if cube is below, 0 if cube is above
-        return -np.float32(achieved_goal[2] < desired_goal[2] + 0.04)
+        velocity_pen = 0.0
+
+        d = np.linalg.norm(achieved_goal - desired_goal)
+        if self.reward_shaping: # dense
+            reward = 1 - np.tanh(10 * d)
+            if d <= self.distance_threshold:
+                reward = 10.0
+        else: # sparse (-1 or 0)
+            #reward = -np.float32(d > distance_threshold)
+            if d > self.distance_threshold:
+                reward = -1.0
+            else:
+                reward = 0.0
+
+        return reward - velocity_pen
 
     # for goalenv wrapper
     def get_goalenv_dict(self, obs_dict):
@@ -279,8 +289,8 @@ class SawyerPrimitivePick(SawyerEnv):
                 ob_lst.append(obs_dict[key])
 
         di['observation'] = np.concatenate(ob_lst)
-        di['desired_goal'] = self.goal
-        di['achieved_goal'] = obs_dict['object-state'][0:3]
+        di['desired_goal'] = obs_dict['object-state'][0:3]
+        di['achieved_goal'] = obs_dict['robot-state'][23:26]
 
         return di
 
@@ -311,50 +321,17 @@ class SawyerPrimitivePick(SawyerEnv):
             else:
                 di["image"] = camera_obs
 
+        # TODO change this to marker pos
         # low-level object information
         if self.use_object_obs:
-            # position and rotation of object
-            cube_pos = np.array(self.sim.data.body_xpos[self.cube_body_id])
-            cube_quat = convert_quat(
-                np.array(self.sim.data.body_xquat[self.cube_body_id]), to="xyzw"
-            )
-            di["cube_pos"] = cube_pos
-            di["cube_quat"] = cube_quat
-
             gripper_site_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
-            di["gripper_to_cube"] = gripper_site_pos - cube_pos
+            di["gripper_to_marker"] = gripper_site_pos - self.goal
 
             di["object-state"] = np.concatenate(
-                [cube_pos, cube_quat, di["gripper_to_cube"]]
+                [self.goal, di["gripper_to_marker"]]
             )
 
         return di
-
-    def _check_contact(self):
-        """
-        Returns True if gripper is in contact with an object.
-        """
-        collision = False
-        for contact in self.sim.data.contact[: self.sim.data.ncon]:
-            if (
-                self.sim.model.geom_id2name(contact.geom1)
-                in self.gripper.contact_geoms()
-                or self.sim.model.geom_id2name(contact.geom2)
-                in self.gripper.contact_geoms()
-            ):
-                collision = True
-                break
-        return collision
-
-    def _check_success(self):
-        """
-        Returns True if task has been completed.
-        """
-        cube_height = self.sim.data.body_xpos[self.cube_body_id][2]
-        table_height = self.table_full_size[2]
-
-        # cube is higher than the table top above a margin
-        return cube_height > table_height + 0.04
 
     def _gripper_visualization(self):
         """
@@ -381,3 +358,4 @@ class SawyerPrimitivePick(SawyerEnv):
             rgba[3] = 0.5
 
             self.sim.model.site_rgba[self.eef_site_id] = rgba
+
