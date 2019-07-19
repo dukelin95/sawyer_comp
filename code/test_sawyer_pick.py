@@ -183,12 +183,7 @@ class SawyerPrimitivePick(SawyerEnv):
             self.mujoco_objects,
             initializer=self.placement_initializer,
         )
-        #self.model.place_objects()
-        # reset positions of objects to under arm
-        self.target_position = np.array([0.58038172, -0.01562932, 0.85211762]) \
-                              + np.concatenate((np.random.uniform(-0.05, 0.05, 2), np.zeros(1)))
-        print("Load {}".format(self.target_position))
-        self.model.place_under_EF(self.target_position)
+        self.model.place_objects()
 
     def _get_reference(self):
         """
@@ -212,17 +207,23 @@ class SawyerPrimitivePick(SawyerEnv):
         """
         super()._reset_internal()
 
+        self.model.place_objects()
+
         if self.random_arm_init:
-            print("Reset {}".format(self.target_position))
             # random initialization of arm
             constant_quat = np.array([-0.01704371, -0.99972409, 0.00199679, -0.01603944])
+            target_position = np.array([0.56, 0.0, 0.87211762]) \
+                              + np.random.uniform(-0.02, 0.02, 3)
+            # target_position = np.array([0.58038172, -0.01562932, 0.90211762]) \
+            #                   + np.random.uniform(-0.02, 0.02, 3)
             self.controller.sync_ik_robot(self._robot_jpos_getter())
-            joint_list = self.controller.inverse_kinematics(self.target_position, constant_quat)
+            joint_list = self.controller.inverse_kinematics(target_position, constant_quat)
             init_pos = np.array(joint_list)
+
+
         else:
-            # reset positions of objects
             init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
-            # init_pos += np.random.randn(init_pos.shape[0]) * 0.02
+            init_pos += np.random.randn(init_pos.shape[0]) * 0.02
             
         self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
         self.sim.data.qpos[
@@ -230,8 +231,7 @@ class SawyerPrimitivePick(SawyerEnv):
             ] = np.array([-0.0115, 0.0115])
 
     def _robot_jpos_getter(self):
-        return np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
-#        return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])
+        return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])
 
     def reward(self, action=None):
         """
