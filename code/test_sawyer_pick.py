@@ -221,12 +221,21 @@ class SawyerPrimitivePick(SawyerEnv):
 
         else:
             init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
-            #init_pos += np.random.randn(init_pos.shape[0]) * 0.02
+            init_pos += np.random.randn(init_pos.shape[0]) * 0.02
             
         self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
         self.sim.data.qpos[
                 self._ref_joint_gripper_actuator_indexes
-            ] = np.array([-0.0115, 0.0115])
+            ] = np.array([-0.0115, 0.0115]) #Open
+
+        # instructive states 30% of the time
+        if np.random.uniform() < 0.99:
+            self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
+            self.sim.data.qpos[10:13] = np.array([ 0.58150992, -0.01368789,  0.88141092])
+            self.sim.data.qpos[
+                self._ref_joint_gripper_actuator_indexes
+            ] = np.array([0.020833, -0.020833])
+
 
     def _robot_jpos_getter(self):
         return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])
