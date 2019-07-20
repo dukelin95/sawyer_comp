@@ -122,7 +122,7 @@ class SawyerPrimitivePick(SawyerEnv):
                 x_range=[-0.00, 0.00],
                 y_range=[-0.00, 0.00],
                 ensure_object_boundary_in_range=False,
-                z_rotation=[-np.pi, np.pi],
+                z_rotation=None,
             )
         low = -np.array([.01, .01, .01, 1])
         high = np.array([.01, .01, .01, 1])
@@ -212,10 +212,8 @@ class SawyerPrimitivePick(SawyerEnv):
         if self.random_arm_init:
             # random initialization of arm
             constant_quat = np.array([-0.01704371, -0.99972409, 0.00199679, -0.01603944])
-            target_position = np.array([0.56, 0.0, 0.87211762]) \
-                              + np.random.uniform(-0.02, 0.02, 3)
-            # target_position = np.array([0.58038172, -0.01562932, 0.90211762]) \
-            #                   + np.random.uniform(-0.02, 0.02, 3)
+            target_position = np.array([0.58038172, -0.01562932, 0.90211762])# \
+                #               + np.random.uniform(-0.02, 0.02, 3)
             self.controller.sync_ik_robot(self._robot_jpos_getter())
             joint_list = self.controller.inverse_kinematics(target_position, constant_quat)
             init_pos = np.array(joint_list)
@@ -223,7 +221,7 @@ class SawyerPrimitivePick(SawyerEnv):
 
         else:
             init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
-            init_pos += np.random.randn(init_pos.shape[0]) * 0.02
+            #init_pos += np.random.randn(init_pos.shape[0]) * 0.02
             
         self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
         self.sim.data.qpos[
