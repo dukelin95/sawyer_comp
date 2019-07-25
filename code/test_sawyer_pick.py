@@ -230,9 +230,13 @@ class SawyerPrimitivePick(SawyerEnv):
             ] = np.array([-0.0115, 0.0115]) #Open
 
         # instructive states 30% of the time
-        if np.random.uniform() < self.instructive:
+        if np.random.uniform() < 0.99: #self.instructive:
             self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
-            self.sim.data.qpos[10:13] = np.array([ 0.58150992, -0.01368789,  0.90141092])
+            print("before: {}".format(self.sim.data.site_xpos[self.eef_site_id]))
+            self.sim.forward()
+            # self.sim.data.qpos[10:13] = np.array([ 0.58150992, -0.01368789,  0.90141092])
+            print("after: {}".format(self.sim.data.site_xpos[self.eef_site_id]))
+            self.sim.data.qpos[10:13] = self.sim.data.site_xpos[self.eef_site_id]
             self.sim.data.qpos[
                 self._ref_joint_gripper_actuator_indexes
             ] = np.array([-0.21021952, -0.00024167]) #gripped
