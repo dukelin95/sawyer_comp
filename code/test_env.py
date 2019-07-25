@@ -23,7 +23,7 @@ render = True
 policy = 'x'
 limits = [-0.2, 0.2] 
 table_full_size = (0.8, 0.8, 0.8)
-random_arm_init= True
+random_arm_init= False
 
 env1 = SawyerPrimitivePick(
 #            prim_axis=policy,

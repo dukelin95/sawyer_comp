@@ -27,6 +27,7 @@ else:
 env = GymGoalEnvWrapper(
        IKWrapper(
         SawyerPrimitivePick(
+            instructive=instructive,
             random_arm_init=random_arm_init,
             has_renderer=render,
             has_offscreen_renderer=False,

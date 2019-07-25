@@ -39,7 +39,9 @@ if args.envir == 'xyz':
 elif args.envir == 'pick':
     from test_sawyer_pick import SawyerPrimitivePick
     from param_pick_env import *
+    instructive = 0.0
     Environment = SawyerPrimitivePick(
+            instructive=instructive,
             random_arm_init=random_arm_init,
             has_renderer=True,
             has_offscreen_renderer=False,
@@ -77,11 +79,12 @@ for u in range(loop):
   done = False
   while not done:
     action, _states = model.predict(obs)
+    print(action)
     obs, rewards, done, info = env.step(action)
     env.viewer.viewer.add_marker(pos=env.goal, size=np.array((0.02,0.02,0.02)), label='goal', rgba=[1, 0, 0, 0.5])
     if env.reward() == 0.0: 
        succ = succ + 1
        print('Success: {}'.format(obs['achieved_goal']))
-       break
+#       break
     env.render()
 print('{0}/{1}'.format(succ, loop))

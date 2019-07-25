@@ -21,6 +21,7 @@ class SawyerPrimitivePick(SawyerEnv):
 
     def __init__(
         self,
+        instructive=0.3,
         random_arm_init=False,
         gripper_type="TwoFingerGripper",
         table_full_size=(0.8, 0.8, 0.8),
@@ -101,7 +102,7 @@ class SawyerPrimitivePick(SawyerEnv):
             camera_depth (bool): True if rendering RGB-D, and RGB otherwise.
         """
         self.random_arm_init = random_arm_init
-
+        self.instructive = instructive
         # settings for table top
         self.table_full_size = table_full_size
         self.table_friction = table_friction
@@ -229,16 +230,17 @@ class SawyerPrimitivePick(SawyerEnv):
             ] = np.array([-0.0115, 0.0115]) #Open
 
         # instructive states 30% of the time
-        if np.random.uniform() < 0.99:
+        if np.random.uniform() < self.instructive:
             self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
-            self.sim.data.qpos[10:13] = np.array([ 0.58150992, -0.01368789,  0.88141092])
+            self.sim.data.qpos[10:13] = np.array([ 0.58150992, -0.01368789,  0.90141092])
             self.sim.data.qpos[
                 self._ref_joint_gripper_actuator_indexes
-            ] = np.array([0.020833, -0.020833])
+            ] = np.array([-0.21021952, -0.00024167]) #gripped
 
 
     def _robot_jpos_getter(self):
-        return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])
+        return np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
+#        return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])
 
     def reward(self, action=None):
         """
@@ -266,7 +268,7 @@ class SawyerPrimitivePick(SawyerEnv):
     # for goalenv wrapper
     def compute_reward(self, achieved_goal, desired_goal, info=None):
         # -1 if cube is below, 0 if cube is above
-        return -np.float32(achieved_goal[2] < desired_goal[2] + 0.04)
+        return -np.float32(achieved_goal[2] < desired_goal[2] + 0.08)
 
     # for goalenv wrapper
     def get_goalenv_dict(self, obs_dict):
