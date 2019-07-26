@@ -23,6 +23,9 @@ from stable_baselines.deepq.replay_buffer import ReplayBuffer
 from tqdm import trange
 import time
 
+import os
+import psutil
+
 def normalize(tensor, stats):
     """
     normalize a tensor using a running mean and std
@@ -228,6 +231,7 @@ class DDPG(OffPolicyRLModel):
                                    requires_vec_env=False, policy_kwargs=policy_kwargs)
 
         print("===START===")
+        self.process = psutil.Process(os.getpid())
         if logging: logger.Logger.CURRENT = logger.Logger("./log", [
             logger.make_output_format("csv", "./log", logging),
             logger.make_output_format("log", "./log", logging),
@@ -1007,6 +1011,7 @@ class DDPG(OffPolicyRLModel):
                     duration = time.time() - start_time
                     stats = self._get_stats()
                     combined_stats = stats.copy()
+                    combined_stats['CPU%'] = self.process.memory_info().rss()
                     combined_stats['rollout/return'] = np.mean(epoch_episode_rewards)
                     combined_stats['rollout/return_history'] = np.mean(episode_rewards_history)
                     combined_stats['rollout/episode_steps'] = np.mean(epoch_episode_steps)
