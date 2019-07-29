@@ -229,9 +229,8 @@ class SawyerPrimitivePick(SawyerEnv):
                 self._ref_joint_gripper_actuator_indexes
             ] = np.array([-0.0115, 0.0115]) #Open
 
-        # instructive states 30% of the time
-        if np.random.uniform() < 0.99: #self.instructive:
-            self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
+        # instructive states certain percentage of the time
+        if np.random.uniform() < self.instructive:
             print("before: {}".format(self.sim.data.site_xpos[self.eef_site_id]))
             self.sim.forward()
             # self.sim.data.qpos[10:13] = np.array([ 0.58150992, -0.01368789,  0.90141092])
@@ -243,8 +242,7 @@ class SawyerPrimitivePick(SawyerEnv):
 
 
     def _robot_jpos_getter(self):
-        return np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
-#        return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])
+        return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])
 
     def reward(self, action=None):
         """

@@ -124,13 +124,16 @@ RUN ["/bin/bash", "-c", "source activate rllab3 && pip install --upgrade pip"]
 
 #RUN pip install tensorflow==1.12.0
 #RUN pip install tensorflow-gpu==1.12.0
-RUN pip install pybullet==1.9.5
+RUN pip install pybullet
 
 RUN apt-get install -y python3-tk
 
 RUN pip install --upgrade pip
 RUN pip install atari-py==0.1.14 
 RUN pip install pandas dill seaborn mpi4py zmq glob2 matplotlib pytz setuptools future tqdm
+
+RUN pip uninstall -y gym
+RUN pip install gym psutil
 
 # set timezone
 ENV TZ=America/Los_Angeles

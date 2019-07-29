@@ -9,7 +9,7 @@ import numpy as np
 import robosuite
 import robosuite.utils.transform_utils as T
 from robosuite.wrappers import Wrapper
-
+from robosuite.controllers import SawyerIKController
 
 class IKWrapper(Wrapper):
     env = None
@@ -30,7 +30,6 @@ class IKWrapper(Wrapper):
         super().__init__(env)
         self.action_spec = env.action_spec
         if self.env.mujoco_robot.name == "sawyer":
-            from robosuite.controllers import SawyerIKController
 
             self.controller = SawyerIKController(
                 bullet_data_path=os.path.join(robosuite.models.assets_root, "bullet_data"),

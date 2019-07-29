@@ -37,7 +37,7 @@ critic_l2_reg = 0.01
 buffer_size=int(1e6)
 normalize=True
 
-total_timesteps = int(0.8e3)
+total_timesteps = int(0.4e6)
 
 env = GymWrapper(
         SawyerPrimitiveReach(

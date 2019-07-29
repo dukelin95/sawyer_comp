@@ -1011,7 +1011,8 @@ class DDPG(OffPolicyRLModel):
                     duration = time.time() - start_time
                     stats = self._get_stats()
                     combined_stats = stats.copy()
-                    combined_stats['CPU%'] = self.process.memory_info().rss()
+                    combined_stats['buffersize'] = len(self.replay_buffer)
+                    combined_stats['CPU%'] = self.process.memory_info().rss/(326218600.0)
                     combined_stats['rollout/return'] = np.mean(epoch_episode_rewards)
                     combined_stats['rollout/return_history'] = np.mean(episode_rewards_history)
                     combined_stats['rollout/episode_steps'] = np.mean(epoch_episode_steps)
