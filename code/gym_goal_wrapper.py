@@ -12,7 +12,7 @@ from robosuite.wrappers import Wrapper
 class GymGoalEnvWrapper(Wrapper):
     env = None
  
-    def __init__(self, env, keys=None, early=False):
+    def __init__(self, env, keys=None, early=False, train=False):
         """
         Initializes the Gym wrapper.
 
@@ -22,7 +22,11 @@ class GymGoalEnvWrapper(Wrapper):
                 consist of concatenated keys from the wrapped environment's
                 observation dictionary. Defaults to robot-state and object-state.
         """
-        self.env = env
+        super().__init__(env)
+
+        self.early = early
+        self.train = train
+
         self.metadata = None
         if keys is None:
             assert self.env.use_object_obs, "Object observations need to be enabled."
@@ -30,18 +34,45 @@ class GymGoalEnvWrapper(Wrapper):
         self.keys = keys
 
         # set up observation and action spaces
+        self.action_space = self.env.action_space
         flat_ob = self._flatten_obs(self.env.reset(), verbose=True)
         self.obs_dim = flat_ob.size
-        high = np.inf * np.ones(self.obs_dim)
-        low = -high
-        self.observation_space = spaces.Dict(dict(
-           desired_goal=spaces.Box(-np.inf, np.inf, shape=(3,)),
-           achieved_goal=spaces.Box(-np.inf, np.inf, shape = (3,)),
-           observation=spaces.Box(low=low, high=high,),
-        ))
 
-        self.action_space = self.env.action_space
-        self.early = early
+
+# TODO delete
+
+        # if train, do a smaller space for some observations
+        if self.train:
+            # order: gripper_qpos, eef_pos, cube_pos
+            xyz_high = [0.5 + self.arm_oprange[1], self.arm_oprange[1], 1.0]
+            xyz_low = [0.5 + self.arm_oprange[0], self.arm_oprange[0], 0.8]
+            high = [0.0115, 0.02]
+            low = [-0.02, -0.0115]
+            high = high.extend(xyz_high + xyz_high)
+            low = low.extend(xyz_low + xyz_low)
+            high = np.array(high)
+            low = np.array(low)
+            self.observation_space = spaces.Dict(dict(
+                desired_goal=spaces.Box(low=np.array(xyz_low), high=np.array(xyz_high)),
+                achieved_goal=spaces.Box(low=np.array(xyz_low), high=np.array(xyz_high)),
+                observation=spaces.Box(low=low, high=high),
+            ))
+        # else test, do a bigger space for some observations
+        else:
+            xyz_high = [0.5 + self.arm_oprange[1], self.arm_oprange[1], 1.0]
+            xyz_low = [0.5 + self.arm_oprange[0], self.arm_oprange[0], 0.8]
+            high = [0.0115, 0.02]
+            low = [-0.02, -0.0115]
+            high = high.extend(xyz_high + xyz_high)
+            low = low.extend(xyz_low + xyz_low)
+            high = np.array(high)
+            low = np.array(low)
+            self.observation_space = spaces.Dict(dict(
+                desired_goal=spaces.Box(low=np.array(xyz_low), high=np.array(xyz_high)),
+                achieved_goal=spaces.Box(low=np.array(xyz_low), high=np.array(xyz_high)),
+                observation=spaces.Box(low=low, high=high),
+            ))
+
 
     def _flatten_obs(self, obs_dict, verbose=False):
         """

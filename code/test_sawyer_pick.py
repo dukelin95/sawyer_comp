@@ -22,6 +22,7 @@ class SawyerPrimitivePick(SawyerEnv):
     def __init__(
         self,
         instructive=0.3,
+        train=False,
         random_arm_init=False,
         gripper_type="TwoFingerGripper",
         table_full_size=(0.8, 0.8, 0.8),
@@ -107,7 +108,40 @@ class SawyerPrimitivePick(SawyerEnv):
         self.table_full_size = table_full_size
         self.table_friction = table_friction
 
-        self.goal = np.array((0, 0, self.table_full_size[2]))
+        # cube init with z of ~0.86, so needs to go up to 0.95
+        self.goal = np.array((0, 0, self.table_full_size[2] + 0.15))
+
+        self.train = train
+        # if train, do a smaller space for some observations
+        if self.train:
+            # order: gripper_qpos, eef_pos, cube_pos
+            self.arm_oprange = [-0.1, 0.1]
+            xyz_high = [0.5 + self.arm_oprange[1], self.arm_oprange[1], 1.0]
+            xyz_low = [0.5 + self.arm_oprange[0], self.arm_oprange[0], 0.8]
+            high = [0.0115, 0.02]
+            low = [-0.02, -0.0115]
+            high = high.extend(xyz_high + xyz_high)
+            low = low.extend(xyz_low + xyz_low)
+            high = np.array(high)
+            low = np.array(low)
+            assert self.obs_dim == len(high), "Wrong size"
+            assert len(low) == len(high), "Wrong size"
+            self.observation_space = spaces.Box(low=low, high=high)
+
+        # else test, do a bigger space for some observations
+        else:
+            self.arm_oprange = [-0.2, 0.2]
+            xyz_high = [0.5 + self.arm_oprange[1], self.arm_oprange[1], 1.0]
+            xyz_low = [0.5 + self.arm_oprange[0], self.arm_oprange[0], 0.8]
+            high = [0.0115, 0.02]
+            low = [-0.02, -0.0115]
+            high = high.extend(xyz_high + xyz_high)
+            low = low.extend(xyz_low + xyz_low)
+            high = np.array(high)
+            low = np.array(low)
+            assert self.obs_dim == len(high), "Wrong size"
+            assert len(low) == len(high), "Wrong size"
+            self.observation_space = spaces.Box(low=low, high=high)
 
         # whether to use ground-truth object states
         self.use_object_obs = use_object_obs
@@ -151,6 +185,8 @@ class SawyerPrimitivePick(SawyerEnv):
             camera_width=camera_width,
             camera_depth=camera_depth,
         )
+
+        self.instructive_counter = 0
 
     def _load_model(self):
         """
@@ -210,36 +246,37 @@ class SawyerPrimitivePick(SawyerEnv):
 
         self.model.place_objects()
 
+
+        arm_range = self.arm_oprange
         if self.random_arm_init:
             # random initialization of arm
             constant_quat = np.array([-0.01704371, -0.99972409, 0.00199679, -0.01603944])
-            target_position = np.array([0.58038172, -0.01562932, 0.90211762])# \
-                #               + np.random.uniform(-0.02, 0.02, 3)
-            self.controller.sync_ik_robot(self._robot_jpos_getter())
+            target_position = np.array([0.5 + np.random.uniform(arm_range[0], arm_range[1]),
+                                        np.random.uniform(arm_range[0], arm_range[1]),
+                                        0.99211762])
+            self.controller.sync_ik_robot(self._robot_jpos_getter(), simulate=True)
             joint_list = self.controller.inverse_kinematics(target_position, constant_quat)
             init_pos = np.array(joint_list)
 
-
         else:
+            # default robosuite init
             init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
             init_pos += np.random.randn(init_pos.shape[0]) * 0.02
-            
-        self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
-        self.sim.data.qpos[
-                self._ref_joint_gripper_actuator_indexes
-            ] = np.array([-0.0115, 0.0115]) #Open
 
-        # instructive states certain percentage of the time
+        self.sim.data.qpos[self._ref_joint_pos_indexes] = init_pos
+
+        self.sim.data.qpos[
+            self._ref_joint_gripper_actuator_indexes
+        ] = np.array([-0.0115, 0.0115])  # Open
+
         if np.random.uniform() < self.instructive:
-            print("before: {}".format(self.sim.data.site_xpos[self.eef_site_id]))
             self.sim.forward()
-            # self.sim.data.qpos[10:13] = np.array([ 0.58150992, -0.01368789,  0.90141092])
-            print("after: {}".format(self.sim.data.site_xpos[self.eef_site_id]))
             self.sim.data.qpos[10:13] = self.sim.data.site_xpos[self.eef_site_id]
             self.sim.data.qpos[
                 self._ref_joint_gripper_actuator_indexes
-            ] = np.array([-0.21021952, -0.00024167]) #gripped
+            ] = np.array([-0.21021952, -0.00024167])  # gripped
 
+        self.instructive_counter = self.instructive_counter + 1
 
     def _robot_jpos_getter(self):
         return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])
@@ -270,7 +307,7 @@ class SawyerPrimitivePick(SawyerEnv):
     # for goalenv wrapper
     def compute_reward(self, achieved_goal, desired_goal, info=None):
         # -1 if cube is below, 0 if cube is above
-        return -np.float32(achieved_goal[2] < desired_goal[2] + 0.08)
+        return -np.float32(achieved_goal[2] < desired_goal[2])
 
     # for goalenv wrapper
     def get_goalenv_dict(self, obs_dict):
@@ -327,37 +364,14 @@ class SawyerPrimitivePick(SawyerEnv):
             gripper_site_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
             di["gripper_to_cube"] = gripper_site_pos - cube_pos
 
+            # di["object-state"] = np.concatenate(
+            #     [cube_pos, cube_quat, di["gripper_to_cube"]]
+            # )
             di["object-state"] = np.concatenate(
-                [cube_pos, cube_quat, di["gripper_to_cube"]]
+                [cube_pos]
             )
 
         return di
-
-    def _check_contact(self):
-        """
-        Returns True if gripper is in contact with an object.
-        """
-        collision = False
-        for contact in self.sim.data.contact[: self.sim.data.ncon]:
-            if (
-                self.sim.model.geom_id2name(contact.geom1)
-                in self.gripper.contact_geoms()
-                or self.sim.model.geom_id2name(contact.geom2)
-                in self.gripper.contact_geoms()
-            ):
-                collision = True
-                break
-        return collision
-
-    def _check_success(self):
-        """
-        Returns True if task has been completed.
-        """
-        cube_height = self.sim.data.body_xpos[self.cube_body_id][2]
-        table_height = self.table_full_size[2]
-
-        # cube is higher than the table top above a margin
-        return cube_height > table_height + 0.04
 
     def _gripper_visualization(self):
         """

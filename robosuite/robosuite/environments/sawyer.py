@@ -252,9 +252,10 @@ class SawyerEnv(MujocoEnv):
         )
 
         robot_states = [
-            np.sin(di["joint_pos"]),
-            np.cos(di["joint_pos"]),
-            di["joint_vel"],
+            # np.sin(di["joint_pos"]),
+            # np.cos(di["joint_pos"]),
+            # di['joint_pos'],
+            # di["joint_vel"],
         ]
 
         if self.has_gripper:
@@ -271,7 +272,8 @@ class SawyerEnv(MujocoEnv):
             )
 
             # add in gripper information
-            robot_states.extend([di["gripper_qpos"], di["eef_pos"], di["eef_quat"]])
+            # robot_states.extend([di["gripper_qpos"], di["eef_pos"], di["eef_quat"]])
+            robot_states.extend([di["gripper_qpos"], di["eef_pos"]])
 
         di["robot-state"] = np.concatenate(robot_states)
         return di
