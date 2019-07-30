@@ -23,7 +23,7 @@ render = True
 policy = 'x'
 limits = [-0.2, 0.2] 
 table_full_size = (0.8, 0.8, 0.8)
-random_arm_init= False 
+random_arm_init= True 
 
 env1 = SawyerPrimitivePick(
 #            prim_axis=policy,
@@ -41,6 +41,12 @@ env2 = IKWrapper(env1, gripper=True)
 env3 = GymGoalEnvWrapper(env2)
 env3.reset()
 env3.render()
+
+def eef_pos(env):
+   print(np.array(env.env.env.sim.data.site_xpos[env.env.env.eef_site_id]))
+
+def joint_pos(env):
+   print(np.array([env.env.env.sim.data.qpos[x] for x in env.env.env._ref_joint_pos_indexes]))
 
 def test_ik():
    import pybullet as p
