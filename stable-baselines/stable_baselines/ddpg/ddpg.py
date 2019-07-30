@@ -26,30 +26,15 @@ import time
 import os
 import psutil
 
-def normalize(tensor, stats):
-    """
-    normalize a tensor using a running mean and std
+def normalize(tensor, obs_space):
+    high = obs_space.high
+    low = obs_space.low
+    return 2 * (tensor - low)/(high - low) - 1
 
-    :param tensor: (TensorFlow Tensor) the input tensor
-    :param stats: (RunningMeanStd) the running mean and std of the input to normalize
-    :return: (TensorFlow Tensor) the normalized tensor
-    """
-    if stats is None:
-        return tensor
-    return (tensor - stats.mean) / stats.std
-
-
-def denormalize(tensor, stats):
-    """
-    denormalize a tensor using a running mean and std
-
-    :param tensor: (TensorFlow Tensor) the normalized tensor
-    :param stats: (RunningMeanStd) the running mean and std of the input to normalize
-    :return: (TensorFlow Tensor) the restored tensor
-    """
-    if stats is None:
-        return tensor
-    return tensor * stats.std + stats.mean
+def denormalize(tensor, obs_space):
+    high = obs_space.high
+    low = obs_space.low
+    return ((tensor + 1.0) * (high - low) + 2 * low) / 2
 
 
 def reduce_std(tensor, axis=None, keepdims=False):
@@ -380,9 +365,9 @@ class DDPG(OffPolicyRLModel):
                     self.obs_target = self.target_policy.obs_ph
                     self.action_target = self.target_policy.action_ph
 
-                    normalized_obs0 = tf.clip_by_value(normalize(self.policy_tf.processed_obs, self.obs_rms),
+                    normalized_obs0 = tf.clip_by_value(normalize(self.policy_tf.processed_obs, self.env.observation_space),
                                                        self.observation_range[0], self.observation_range[1])
-                    normalized_obs1 = tf.clip_by_value(normalize(self.target_policy.processed_obs, self.obs_rms),
+                    normalized_obs1 = tf.clip_by_value(normalize(self.target_policy.processed_obs, self.env.observation_space),
                                                        self.observation_range[0], self.observation_range[1])
 
                     if self.param_noise is not None:
@@ -426,14 +411,14 @@ class DDPG(OffPolicyRLModel):
                 with tf.variable_scope("loss", reuse=False):
                     self.critic_tf = denormalize(
                         tf.clip_by_value(self.normalized_critic_tf, self.return_range[0], self.return_range[1]),
-                        self.ret_rms)
+                        self.env.observation_space)
 
                     self.critic_with_actor_tf = denormalize(
                         tf.clip_by_value(self.normalized_critic_with_actor_tf,
                                          self.return_range[0], self.return_range[1]),
-                        self.ret_rms)
+                        self.env.observation_space)
 
-                    q_obs1 = denormalize(critic_target, self.ret_rms)
+                    q_obs1 = denormalize(critic_target, self.env.observation_space)
                     self.target_q = self.rewards + (1. - self.terminals1) * self.gamma * q_obs1
 
                     tf.summary.scalar('critic_target', tf.reduce_mean(self.critic_target))
@@ -536,7 +521,7 @@ class DDPG(OffPolicyRLModel):
         """
         if self.verbose >= 2:
             logger.info('setting up critic optimizer')
-        normalized_critic_target_tf = tf.clip_by_value(normalize(self.critic_target, self.ret_rms),
+        normalized_critic_target_tf = tf.clip_by_value(normalize(self.critic_target, self.env.observation_space),
                                                        self.return_range[0], self.return_range[1])
         self.critic_loss = tf.reduce_mean(tf.square(self.normalized_critic_tf - normalized_critic_target_tf))
         if self.critic_l2_reg > 0.:
