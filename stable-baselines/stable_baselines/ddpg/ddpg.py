@@ -26,11 +26,13 @@ import time
 import os
 import psutil
 
+two = tf.constant(2.0, shape=())
+one = tf.constant(1.0, shape=())
 def normalize(tensor, high, low):
-    return 2 * (tensor - low)/(high - low) - 1
+    return two * (tensor - low)/(high - low) - one
 
 def denormalize(tensor, high, low):
-    return ((tensor + 1.0) * (high - low) + 2 * low) / 2
+    return ((tensor + one) * (high - low) + two * low) / two
 
 
 def reduce_std(tensor, axis=None, keepdims=False):
