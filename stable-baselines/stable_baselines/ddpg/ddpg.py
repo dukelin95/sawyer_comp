@@ -26,8 +26,16 @@ import time
 import os
 import psutil
 
-two = tf.constant(2.0, shape=())
-one = tf.constant(1.0, shape=())
+two = tf.get_variable(
+        dtype=tf.float64,
+        shape=(),
+        initializer=tf.constant_initializer(2.0),
+        name="one", trainable=False)
+one = tf.get_variable(
+        dtype=tf.float64,
+        shape=(),
+        initializer=tf.constant_initializer(1.0),
+        name="one", trainable=False)
 def normalize(tensor, high, low):
     return two * (tensor - low)/(high - low) - one
 
@@ -213,8 +221,16 @@ class DDPG(OffPolicyRLModel):
                                    verbose=verbose, policy_base=DDPGPolicy,
                                    requires_vec_env=False, policy_kwargs=policy_kwargs)
 
-        self.norm_high = tf.constant(self.env.observation_space.high)
-        self.norm_low = tf.constant(self.env.observation_space.low)
+        self.norm_high = tf.get_variable(
+            dtype=tf.float64,
+            shape=self.env.observation_space.shape,
+            initializer=self.env.observation_space.high,
+            name="one", trainable=False)
+        self.norm_low = tf.get_variable(
+            dtype=tf.float64,
+            shape=self.env.observation_space.shape,
+            initializer=self.env.observation_space.low,
+            name="one", trainable=False)
 
         print("===START===")
         self.process = psutil.Process(os.getpid())
