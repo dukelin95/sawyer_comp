@@ -21,7 +21,7 @@ class SawyerPrimitivePick(SawyerEnv):
 
     def __init__(
         self,
-        instructive=0.3,
+        instructive=0.0,
         random_arm_init=False,
         gripper_type="TwoFingerGripper",
         table_full_size=(0.8, 0.8, 0.8),
@@ -103,6 +103,7 @@ class SawyerPrimitivePick(SawyerEnv):
         """
         self.random_arm_init = random_arm_init
         self.instructive = instructive
+        self.instructive_counter = 0
         # settings for table top
         self.table_full_size = table_full_size
         self.table_friction = table_friction
@@ -210,36 +211,39 @@ class SawyerPrimitivePick(SawyerEnv):
 
         self.model.place_objects()
 
+
+        arm_range = [-0.1, 0.1]
         if self.random_arm_init:
             # random initialization of arm
             constant_quat = np.array([-0.01704371, -0.99972409, 0.00199679, -0.01603944])
-            target_position = np.array([0.58038172, -0.01562932, 0.90211762])# \
-                #               + np.random.uniform(-0.02, 0.02, 3)
-            self.controller.sync_ik_robot(self._robot_jpos_getter())
+            target_position = np.array([0.5 + np.random.uniform(arm_range[0], arm_range[1]),
+                                        np.random.uniform(arm_range[0], arm_range[1]),
+                                        0.99211762])
+            self.controller.sync_ik_robot(self._robot_jpos_getter(), simulate=True)
             joint_list = self.controller.inverse_kinematics(target_position, constant_quat)
             init_pos = np.array(joint_list)
 
-
         else:
+            # default robosuite init
             init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
             init_pos += np.random.randn(init_pos.shape[0]) * 0.02
-            
-        self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
-        self.sim.data.qpos[
-                self._ref_joint_gripper_actuator_indexes
-            ] = np.array([-0.0115, 0.0115]) #Open
 
-        # instructive states certain percentage of the time
-        if np.random.uniform() < self.instructive:
-            print("before: {}".format(self.sim.data.site_xpos[self.eef_site_id]))
+        self.sim.data.qpos[self._ref_joint_pos_indexes] = init_pos
+
+        self.sim.data.qpos[
+            self._ref_joint_gripper_actuator_indexes
+        ] = np.array([-0.0115, 0.0115])  # Open
+
+        # decay rate (1 / (1 + decay_param * #resets))
+        decay_param = 1e-5
+        if np.random.uniform() < self.instructive * (1 / (1 + decay_param * self.instructive_counter)):
             self.sim.forward()
-            # self.sim.data.qpos[10:13] = np.array([ 0.58150992, -0.01368789,  0.90141092])
-            print("after: {}".format(self.sim.data.site_xpos[self.eef_site_id]))
             self.sim.data.qpos[10:13] = self.sim.data.site_xpos[self.eef_site_id]
             self.sim.data.qpos[
                 self._ref_joint_gripper_actuator_indexes
-            ] = np.array([-0.21021952, -0.00024167]) #gripped
+            ] = np.array([-0.21021952, -0.00024167])  # gripped
 
+        self.instructive_counter = self.instructive_counter + 1
 
     def _robot_jpos_getter(self):
         return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])

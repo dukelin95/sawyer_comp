@@ -271,7 +271,8 @@ class SawyerEnv(MujocoEnv):
             )
 
             # add in gripper information
-            robot_states.extend([di["gripper_qpos"], di["eef_pos"], di["eef_quat"]])
+            # robot_states.extend([di["gripper_qpos"], di["eef_pos"], di["eef_quat"]])
+            robot_states.extend([di["gripper_qpos"], di["eef_pos"]])
 
         di["robot-state"] = np.concatenate(robot_states)
         return di
