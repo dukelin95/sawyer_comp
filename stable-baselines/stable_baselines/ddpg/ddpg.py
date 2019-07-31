@@ -211,6 +211,9 @@ class DDPG(OffPolicyRLModel):
                                    verbose=verbose, policy_base=DDPGPolicy,
                                    requires_vec_env=False, policy_kwargs=policy_kwargs)
 
+        self.norm_high = tf.constant(self.env.observation_space.high)
+        self.norm_low = tf.constant(self.env.observation_space.low)
+
         print("===START===")
         self.process = psutil.Process(os.getpid())
         if logging: logger.Logger.CURRENT = logger.Logger("./log", [
@@ -316,9 +319,6 @@ class DDPG(OffPolicyRLModel):
 
         if _init_setup_model:
             self.setup_model()
-
-        self.norm_high = tf.constant(self.env.observation_space.high)
-        self.norm_low = tf.constant(self.env.observation_space.low)
 
     def _get_pretrain_placeholders(self):
         policy = self.policy_tf
