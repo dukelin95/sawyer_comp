@@ -234,11 +234,13 @@ class SawyerPrimitivePick(SawyerEnv):
             self._ref_joint_gripper_actuator_indexes
         ] = np.array([-0.0115, 0.0115])  # Open
 
+        self.sim.forward()
+        self.sim.data.qpos[10:12] = self.sim.data.site_xpos[self.eef_site_id][:2]
+
         # decay rate (1 / (1 + decay_param * #resets))
         decay_param = 1e-5
         if np.random.uniform() < self.instructive * (1 / (1 + decay_param * self.instructive_counter)):
-            self.sim.forward()
-            self.sim.data.qpos[10:13] = self.sim.data.site_xpos[self.eef_site_id]
+            self.sim.data.qpos[13] = self.sim.data.site_xpos[self.eef_site_id][2]
             self.sim.data.qpos[
                 self._ref_joint_gripper_actuator_indexes
             ] = np.array([-0.21021952, -0.00024167])  # gripped
