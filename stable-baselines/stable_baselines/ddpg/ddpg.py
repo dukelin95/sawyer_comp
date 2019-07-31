@@ -35,7 +35,7 @@ one = tf.get_variable(
         dtype=tf.float64,
         shape=(),
         initializer=tf.constant_initializer(1.0),
-        name="one", trainable=False)
+        name="two", trainable=False)
 def normalize(tensor, high, low):
     return two * (tensor - low)/(high - low) - one
 
@@ -222,15 +222,13 @@ class DDPG(OffPolicyRLModel):
                                    requires_vec_env=False, policy_kwargs=policy_kwargs)
 
         self.norm_high = tf.get_variable(
-            dtype=tf.float64,
-            shape=self.env.observation_space.shape,
+            dtype=tf.float32,
             initializer=self.env.observation_space.high,
-            name="one", trainable=False)
+            name="high", trainable=False)
         self.norm_low = tf.get_variable(
-            dtype=tf.float64,
-            shape=self.env.observation_space.shape,
+            dtype=tf.float32,
             initializer=self.env.observation_space.low,
-            name="one", trainable=False)
+            name="low", trainable=False)
 
         print("===START===")
         self.process = psutil.Process(os.getpid())
