@@ -108,7 +108,7 @@ class SawyerPrimitivePick(SawyerEnv):
         self.table_full_size = table_full_size
         self.table_friction = table_friction
 
-        self.goal = np.array((0, 0, self.table_full_size[2]))
+        self.goal = np.array((0, 0, self.table_full_size[2] + 0.15))
 
         # whether to use ground-truth object states
         self.use_object_obs = use_object_obs
@@ -276,7 +276,7 @@ class SawyerPrimitivePick(SawyerEnv):
     # for goalenv wrapper
     def compute_reward(self, achieved_goal, desired_goal, info=None):
         # -1 if cube is below, 0 if cube is above
-        return -np.float32(achieved_goal[2] < desired_goal[2] + 0.08)
+        return -np.float32(achieved_goal[2] < desired_goal[2])
 
     # for goalenv wrapper
     def get_goalenv_dict(self, obs_dict):
@@ -338,32 +338,6 @@ class SawyerPrimitivePick(SawyerEnv):
             )
 
         return di
-
-    def _check_contact(self):
-        """
-        Returns True if gripper is in contact with an object.
-        """
-        collision = False
-        for contact in self.sim.data.contact[: self.sim.data.ncon]:
-            if (
-                self.sim.model.geom_id2name(contact.geom1)
-                in self.gripper.contact_geoms()
-                or self.sim.model.geom_id2name(contact.geom2)
-                in self.gripper.contact_geoms()
-            ):
-                collision = True
-                break
-        return collision
-
-    def _check_success(self):
-        """
-        Returns True if task has been completed.
-        """
-        cube_height = self.sim.data.body_xpos[self.cube_body_id][2]
-        table_height = self.table_full_size[2]
-
-        # cube is higher than the table top above a margin
-        return cube_height > table_height + 0.04
 
     def _gripper_visualization(self):
         """
