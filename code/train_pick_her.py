@@ -28,6 +28,7 @@ env = GymGoalEnvWrapper(
        IKWrapper(
         SawyerPrimitivePick(
             instructive=instructive,
+            decay=decay,
             random_arm_init=random_arm_init,
             has_renderer=render,
             has_offscreen_renderer=False,
@@ -65,7 +66,7 @@ kwargs = {'verbose':2,
 model = HER('MlpPolicy', env, DDPG, **kwargs)
 start = time.time()
 
-model.learn(total_timesteps=total_timesteps, log_interval=1)
+model.learn(total_timesteps=total_timesteps, log_interval=100)
 
 policy = 'pick'
 if log :

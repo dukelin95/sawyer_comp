@@ -40,6 +40,7 @@ elif args.envir == 'pick':
     from test_sawyer_pick import SawyerPrimitivePick
     from param_pick_env import *
     instructive = 0.0
+    random_arm_init=True
     Environment = SawyerPrimitivePick(
             instructive=instructive,
             random_arm_init=random_arm_init,

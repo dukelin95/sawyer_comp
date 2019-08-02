@@ -24,11 +24,13 @@ policy = 'x'
 limits = [-0.2, 0.2] 
 table_full_size = (0.8, 0.8, 0.8)
 random_arm_init= True 
+instructive = 0.3
 
 env1 = SawyerPrimitivePick(
 #            prim_axis=policy,
 #            limits=limits,
 #            table_full_size=table_full_size,
+            instructive=instructive,
             random_arm_init=random_arm_init,
             has_renderer=render,
             has_offscreen_renderer=False,
@@ -42,6 +44,8 @@ env3 = GymGoalEnvWrapper(env2)
 env3.reset()
 env3.render()
 
+def cube_pos(env):
+   print(np.array(env.env.env.sim.data.body_xpos[env.env.env.cube_body_id]))
 def eef_pos(env):
    print(np.array(env.env.env.sim.data.site_xpos[env.env.env.eef_site_id]))
 

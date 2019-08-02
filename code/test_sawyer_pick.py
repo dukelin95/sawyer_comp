@@ -22,6 +22,7 @@ class SawyerPrimitivePick(SawyerEnv):
     def __init__(
         self,
         instructive=0.0,
+        decay = 0.0,
         random_arm_init=False,
         gripper_type="TwoFingerGripper",
         table_full_size=(0.8, 0.8, 0.8),
@@ -104,11 +105,12 @@ class SawyerPrimitivePick(SawyerEnv):
         self.random_arm_init = random_arm_init
         self.instructive = instructive
         self.instructive_counter = 0
+        self.decay = decay
         # settings for table top
         self.table_full_size = table_full_size
         self.table_friction = table_friction
 
-        self.goal = np.array((0, 0, self.table_full_size[2] + 0.15))
+        self.goal = np.array((0, 0, self.table_full_size[2] + 0.1))
 
         # whether to use ground-truth object states
         self.use_object_obs = use_object_obs
@@ -218,7 +220,7 @@ class SawyerPrimitivePick(SawyerEnv):
             constant_quat = np.array([-0.01704371, -0.99972409, 0.00199679, -0.01603944])
             target_position = np.array([0.5 + np.random.uniform(arm_range[0], arm_range[1]),
                                         np.random.uniform(arm_range[0], arm_range[1]),
-                                        0.99211762])
+                                        0.95211762])
             self.controller.sync_ik_robot(self._robot_jpos_getter(), simulate=True)
             joint_list = self.controller.inverse_kinematics(target_position, constant_quat)
             init_pos = np.array(joint_list)
@@ -231,19 +233,20 @@ class SawyerPrimitivePick(SawyerEnv):
         self.sim.data.qpos[self._ref_joint_pos_indexes] = init_pos
 
         self.sim.data.qpos[
-            self._ref_joint_gripper_actuator_indexes
-        ] = np.array([-0.0115, 0.0115])  # Open
+            self._ref_gripper_joint_pos_indexes
+        ] = np.array([0.0115, -0.0115])  # Open
 
         self.sim.forward()
         self.sim.data.qpos[10:12] = self.sim.data.site_xpos[self.eef_site_id][:2]
 
         # decay rate (1 / (1 + decay_param * #resets))
-        decay_param = 1e-5
-        if np.random.uniform() < self.instructive * (1 / (1 + decay_param * self.instructive_counter)):
+        decay_param = self.decay
+        chance = self.instructive * (1 / (1 + decay_param * self.instructive_counter))
+        if np.random.uniform() < chance:
             self.sim.data.qpos[13] = self.sim.data.site_xpos[self.eef_site_id][2]
             self.sim.data.qpos[
-                self._ref_joint_gripper_actuator_indexes
-            ] = np.array([-0.21021952, -0.00024167])  # gripped
+                self._ref_gripper_joint_pos_indexes
+            ] = np.array([-0.0, -0.0]) #np.array([-0.21021952, -0.00024167])  # gripped
 
         self.instructive_counter = self.instructive_counter + 1
 

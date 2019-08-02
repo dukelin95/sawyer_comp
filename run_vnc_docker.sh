@@ -10,6 +10,6 @@ docker run \
        -v /home/duke/sawyer_comp/robosuite/:/root/robosuite/ \
        -v /home/duke/sawyer_comp/stable-baselines/:/root/stable-baselines/ \
        --env DISPLAY=$DISPLAY \
-       --env CUDA_VISIBLE_DEVICES=3 \
+       --env CUDA_VISIBLE_DEVICES=2 \
        --runtime nvidia \
        crl_vnc_sawyer 
