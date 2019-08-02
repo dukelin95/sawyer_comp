@@ -22,7 +22,7 @@ class GymGoalEnvWrapper(Wrapper):
                 consist of concatenated keys from the wrapped environment's
                 observation dictionary. Defaults to robot-state and object-state.
         """
-        self.env = env
+        super().__init__(env)
         self.metadata = None
         if keys is None:
             assert self.env.use_object_obs, "Object observations need to be enabled."
