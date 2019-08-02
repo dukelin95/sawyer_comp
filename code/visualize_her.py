@@ -20,7 +20,7 @@ args = parser.parse_args()
 early = False
 
 if args.envir == 'xyz':
-    from test_sawyer import SawyerPrimitiveReach
+    from test_sawyer_xyz import SawyerPrimitiveReach
     from param_xyz_env import *
     Environment = SawyerPrimitiveReach(
             prim_axis=policy,

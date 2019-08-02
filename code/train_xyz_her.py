@@ -11,7 +11,7 @@ from stable_baselines import DDPG
 from stable_baselines import HER
 
 # from sawyer_primitive_reach import SawyerPrimitiveReach
-from test_sawyer import SawyerPrimitiveReach
+from test_sawyer_xyz import SawyerPrimitiveReach
 from param_her_xyz import *
 from param_xyz_env import *
 

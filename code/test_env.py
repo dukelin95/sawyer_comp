@@ -13,7 +13,7 @@ from stable_baselines import HER
 
 from utils import HERGoalEnvWrapper
 # from sawyer_primitive_reach import SawyerPrimitiveReach
-from test_sawyer import SawyerPrimitiveReach
+from test_sawyer_xyz import SawyerPrimitiveReach
 from test_sawyer_pick import SawyerPrimitivePick
 import argparse
 

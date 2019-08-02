@@ -215,20 +215,23 @@ class SawyerPrimitiveReach(SawyerEnv):
         # reset positions of objects
         self.model.place_objects()
 
+        arm_range = [-0.1, 0.1]
         if self.random_arm_init:
             # random initialization of arm
             constant_quat = np.array([-0.01704371, -0.99972409, 0.00199679, -0.01603944])
-            target_position = np.array([0.58038172, -0.01562932, 0.90211762]) \
-                              + np.random.uniform(-0.02, 0.02, 3)
-            self.controller.sync_ik_robot(self._robot_jpos_getter())
+            target_position = np.array([0.5 + np.random.uniform(arm_range[0], arm_range[1]),
+                                        np.random.uniform(arm_range[0], arm_range[1]),
+                                        0.95211762])
+            self.controller.sync_ik_robot(self._robot_jpos_getter(), simulate=True)
             joint_list = self.controller.inverse_kinematics(target_position, constant_quat)
             init_pos = np.array(joint_list)
 
-
         else:
+            # default robosuite init
             init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
             init_pos += np.random.randn(init_pos.shape[0]) * 0.02
-        self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
+
+        self.sim.data.qpos[self._ref_joint_pos_indexes] = init_pos
 
     def reset(self):
         self._destroy_viewer()
@@ -301,7 +304,7 @@ class SawyerPrimitiveReach(SawyerEnv):
 
         di['observation'] = np.concatenate(ob_lst)
         di['desired_goal'] = obs_dict['object-state'][0:3]
-        di['achieved_goal'] = obs_dict['robot-state'][23:26]
+        di['achieved_goal'] = obs_dict['robot-state'][0:3]
 
         return di
 

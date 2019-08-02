@@ -8,7 +8,7 @@ from stable_baselines.ddpg.noise import OrnsteinUhlenbeckActionNoise
 from stable_baselines import DDPG
 
 # from sawyer_primitive_reach import SawyerPrimitiveReach
-from test_sawyer import SawyerPrimitiveReach
+from test_sawyer_xyz import SawyerPrimitiveReach
 import argparse
 
 parser = argparse.ArgumentParser(description='To log or not to log, no for no log')

@@ -271,10 +271,10 @@ class SawyerPrimitivePick(SawyerEnv):
         Returns:
             reward (float): the reward
         """
-        table_height = self.goal
+
         cube_height = self.sim.data.body_xpos[self.cube_body_id]
 
-        return self.compute_reward(cube_height, table_height)
+        return self.compute_reward(cube_height, self.goal)
 
     # for goalenv wrapper
     def compute_reward(self, achieved_goal, desired_goal, info=None):
@@ -336,8 +336,11 @@ class SawyerPrimitivePick(SawyerEnv):
             gripper_site_pos = np.array(self.sim.data.site_xpos[self.eef_site_id])
             di["gripper_to_cube"] = gripper_site_pos - cube_pos
 
+            # di["object-state"] = np.concatenate(
+            #     [cube_pos, cube_quat, di["gripper_to_cube"]]
+            # )
             di["object-state"] = np.concatenate(
-                [cube_pos, cube_quat, di["gripper_to_cube"]]
+                [cube_pos]
             )
 
         return di
