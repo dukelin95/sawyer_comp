@@ -15,7 +15,7 @@ import os
 from os.path import join as pjoin
 from gym import spaces
 
-class SawyerPrimitiveReach(SawyerEnv):
+class SawyerReach(SawyerEnv):
     """
     This class corresponds to the a primitive policy for the reach task on the Sawyer robot arm.
 
