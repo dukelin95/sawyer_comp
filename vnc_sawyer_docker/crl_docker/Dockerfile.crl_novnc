@@ -1,4 +1,4 @@
-FROM arclab/vnc:cuda9.0-cudnn7 
+FROM rlplayground/cuda9_cudnn7:latest
 WORKDIR /.
 
 # ========== Anaconda ==========
@@ -141,6 +141,5 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 ADD init.sh /root/init.sh
 ENV PYTHONPATH $PYTHONPATH:/root/code/crl_code
-CMD ["/bin/bash", "/root/init.sh"]
-
+#CMD ["bin/bash", "/root/init.sh"]
 
